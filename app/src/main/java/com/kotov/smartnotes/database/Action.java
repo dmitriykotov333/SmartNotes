@@ -1,24 +1,16 @@
-package com.kotov.smartnotes.action;
+package com.kotov.smartnotes.database;
 
 import android.content.Context;
-import android.content.Intent;
-import android.util.Log;
 
-import com.kotov.smartnotes.Inbox;
-import com.kotov.smartnotes.action.imageadapter.Item;
+import com.kotov.smartnotes.model.Inbox;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Objects;
 
 import io.realm.Realm;
-import io.realm.RealmList;
 import io.realm.RealmResults;
 import io.realm.exceptions.RealmException;
 
@@ -51,6 +43,14 @@ public class Action implements AutoCloseable {
     public void add(Inbox inbox) {
         try {
             mRealm.executeTransaction(realm -> realm.insertOrUpdate(inbox));
+        } catch (RealmException e) {
+            LOG.error(e.getMessage(), e);
+        }
+    }
+
+    public void remove(String id) {
+        try {
+            mRealm.executeTransaction(realm1 -> mRealm.where(Inbox.class).equalTo("create_date", id).findAll().deleteAllFromRealm());
         } catch (RealmException e) {
             LOG.error(e.getMessage(), e);
         }

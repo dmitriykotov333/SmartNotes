@@ -2,8 +2,6 @@ package com.kotov.smartnotes.adapter;
 
 import android.view.View;
 
-import com.kotov.smartnotes.Inbox;
-
 /**
  * @author dmitriykotov333@gmail.com
  * @since 06.08.2020

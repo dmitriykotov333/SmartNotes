@@ -1,4 +1,4 @@
-package com.kotov.smartnotes.action.imageadapter;
+package com.kotov.smartnotes.adapter;
 
 import android.content.Context;
 import android.util.SparseBooleanArray;
@@ -10,7 +10,8 @@ import android.widget.RelativeLayout;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.kotov.smartnotes.R;
-import com.kotov.smartnotes.adapter.OnClickListener;
+import com.kotov.smartnotes.model.Item;
+
 import java.util.ArrayList;
 import java.util.List;
 import androidx.annotation.NonNull;

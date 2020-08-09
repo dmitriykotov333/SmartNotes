@@ -1,6 +1,4 @@
-package com.kotov.smartnotes;
-
-import com.kotov.smartnotes.action.imageadapter.Item;
+package com.kotov.smartnotes.model;
 
 import io.realm.RealmList;
 import io.realm.RealmObject;
@@ -25,7 +23,6 @@ public class Inbox extends RealmObject  {
         this.description = description;
         this.create_date = create_date;
         this.update_date = update_date;
-        //this.image = image;
         this.priority = priority;
     }
 

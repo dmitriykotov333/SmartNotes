@@ -8,9 +8,9 @@ import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.kotov.smartnotes.Inbox;
+import com.kotov.smartnotes.model.Inbox;
 import com.kotov.smartnotes.R;
-import com.kotov.smartnotes.utils.Util;
+import com.kotov.smartnotes.utils.Utils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -73,16 +73,16 @@ public class AdapterList extends RecyclerView.Adapter<AdapterList.ViewHolder> {
         viewHolder.desc.setText(inbox.getDescription());
         viewHolder.date.setText(inbox.getCreate_date());
         viewHolder.lyt_parent.setActivated(selected_items.get(i, false));
-        if (inbox.getPriority() == Util.PRIORITY_RED) {
+        if (inbox.getPriority() == Utils.PRIORITY_RED) {
             viewHolder.view_priority.setBackgroundColor(context.getResources().getColor(R.color.red_600));
         }
-        if (inbox.getPriority() == Util.PRIORITY_YELLOW) {
+        if (inbox.getPriority() == Utils.PRIORITY_YELLOW) {
             viewHolder.view_priority.setBackgroundColor(context.getResources().getColor(R.color.yellow));
         }
-        if (inbox.getPriority() == Util.PRIORITY_GREEN) {
+        if (inbox.getPriority() == Utils.PRIORITY_GREEN) {
             viewHolder.view_priority.setBackgroundColor(context.getResources().getColor(R.color.green));
         }
-        if (inbox.getPriority() == Util.PRIORITY_DEFAULT) {
+        if (inbox.getPriority() == Utils.PRIORITY_DEFAULT) {
             viewHolder.view_priority.setBackgroundColor(0);
         }
         viewHolder.lyt_parent.setOnClickListener(view -> {

@@ -1,22 +1,20 @@
-package com.kotov.smartnotes.action;
+package com.kotov.smartnotes.activity.editor;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 import com.kotov.smartnotes.R;
-import com.kotov.smartnotes.Tools;
-import com.kotov.smartnotes.action.imageadapter.AdapterImage;
-import com.kotov.smartnotes.action.imageadapter.Item;
+import com.kotov.smartnotes.adapter.AdapterImage;
+import com.kotov.smartnotes.model.Item;
 import com.kotov.smartnotes.adapter.OnClickListener;
-import com.kotov.smartnotes.utils.Util;
+import com.kotov.smartnotes.utils.Utils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -36,58 +34,58 @@ import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import io.realm.Realm;
-import static com.kotov.smartnotes.file.Save.saveFile;
-import static com.kotov.smartnotes.utils.Util.PR;
-import static com.kotov.smartnotes.utils.Util.PRIORITY;
 
-public class AddNotes extends AppCompatActivity {
+import static com.kotov.smartnotes.file.Save.saveFile;
+import static com.kotov.smartnotes.utils.Utils.PR;
+import static com.kotov.smartnotes.utils.Utils.PRIORITY;
+
+public class Notes extends AppCompatActivity implements View {
 
     private com.google.android.material.textfield.TextInputEditText title;
     private com.google.android.material.textfield.TextInputEditText description;
-    private String currentDate = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(new Date());
-    private String currentTime = new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date());
     private String id;
-    private View view_priority;
+    private android.view.View view_priority;
     private TextView date;
     private AdapterImage mAdapter;
     private ActionMode actionMode;
     private ActionModeCallback actionModeCallback;
+    private ProgressDialog progressDialog;
+    private Presenter presenter;
+    private Uri pickedImage;
+    private List<Item> rst = new ArrayList<>();
+    private Bitmap bitmap;
+    private int single_choice_selected;
 
+    private String CURRENT_DATE = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(new Date());
 
-    Realm mRealm;
+    private String CURRENT_TIME = new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date());
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.add_notes);
-        mRealm = Realm.getDefaultInstance();
+        presenter = new Presenter(this, getApplicationContext());
         initToolbar();
         initView();
-
-        Action action = new Action(getApplicationContext());
         Intent intent = getIntent();
         id = intent.getStringExtra("id");
         single_choice_selected = PR[0];
         if (id != null) {
-            title.setText(action.getParameters(id).getTitle());
-            description.setText(action.getParameters(id).getDescription());
-            single_choice_selected = action.getParameters(id).getPriority();
-            date.setText(String.format("Create notes:\n%s\nUpdate notes:\n%s", action.getParameters(id).getCreate_date(), action.getParameters(id).getUpdate_date()));
-            rst = action.getParameters(id).getImage();
+            title.setText(presenter.get(id).getTitle());
+            description.setText(presenter.get(id).getDescription());
+            single_choice_selected = presenter.get(id).getPriority();
+            date.setText(String.format("Create notes:\n%s\nUpdate notes:\n%s", presenter.get(id).getCreate_date(), presenter.get(id).getUpdate_date()));
+            rst = presenter.get(id).getImage();
+            initComponent(pickedImage);
         }
-        rstt.addAll(rst);
-        initComponent(pickedImage);
+        progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage(getString(R.string.please_wait));
     }
 
     @Override
     protected void onPause() {
         super.onPause();
         pickedImage = null;
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-       // initComponent(pickedImage);
     }
 
     @Override
@@ -102,8 +100,7 @@ public class AddNotes extends AppCompatActivity {
         Objects.requireNonNull(getSupportActionBar()).setTitle(null);
         Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
-        Tools.setSystemBarColor(AddNotes.this, R.color.colorPrimaryDark);
-
+        Utils.setSystemBarColor(Notes.this, R.color.colorPrimaryDark);
     }
 
     private void initView() {
@@ -114,7 +111,6 @@ public class AddNotes extends AppCompatActivity {
     }
 
     private void initComponent(Uri pickedImage) {
-
         if (pickedImage != null) {
             try {
                 bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), pickedImage);
@@ -124,13 +120,11 @@ public class AddNotes extends AppCompatActivity {
             ByteArrayOutputStream stream = new ByteArrayOutputStream();
             bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
             byte[] byteArray = stream.toByteArray();
-            byteImage.add(byteArray);
-            mRealm.executeTransaction(realm -> {
+            Realm.getDefaultInstance().executeTransaction(realm -> {
                 rst.add(new Item(byteArray));
                 realm.insertOrUpdate(rst);
             });
         }
-        Toast.makeText(this, "1", Toast.LENGTH_SHORT).show();
         RecyclerView recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         recyclerView.addItemDecoration(new DividerItemDecoration(this, 1));
@@ -138,7 +132,7 @@ public class AddNotes extends AppCompatActivity {
         mAdapter = new AdapterImage(this, rst);
         recyclerView.setAdapter(mAdapter);
         mAdapter.setOnClickListener(new OnClickListener<Item>() {
-            public void onItemClick(View view, Item inbox, int i) {
+            public void onItemClick(android.view.View view, Item inbox, int i) {
                 if (mAdapter.getSelectedItemCount() > 0) {
                     enableActionMode(i);
                 }
@@ -146,11 +140,40 @@ public class AddNotes extends AppCompatActivity {
 
             }
 
-            public void onItemLongClick(View view, Item inbox, int i) {
+            public void onItemLongClick(android.view.View view, Item inbox, int i) {
                 enableActionMode(i);
             }
         });
-        actionModeCallback = new ActionModeCallback();
+        actionModeCallback = new ActionModeCallback(this) {
+            @Override
+            public boolean onPrepareActionMode(ActionMode actionMode, Menu menu) {
+                return super.onPrepareActionMode(actionMode, menu);
+            }
+
+            @Override
+            public boolean onCreateActionMode(ActionMode action, Menu menu) {
+                return super.onCreateActionMode(action, menu);
+            }
+
+            @Override
+            public boolean onActionItemClicked(ActionMode action, MenuItem menuItem) {
+                return super.onActionItemClicked(action, menuItem);
+            }
+
+            @Override
+            public void onDestroyActionMode(ActionMode action) {
+                mAdapter.clearSelections();
+            }
+
+            @Override
+            public void deleteInbox() {
+                List<Integer> selectedItems = mAdapter.getSelectedItems();
+                for (int size = selectedItems.size() - 1; size >= 0; size--) {
+                    mAdapter.removeData(selectedItems.get(size));
+                }
+                mAdapter.notifyDataSetChanged();
+            }
+        };
     }
 
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -160,13 +183,11 @@ public class AddNotes extends AppCompatActivity {
 
     public boolean onOptionsItemSelected(MenuItem menuItem) {
         if (menuItem.getItemId() == R.id.action_save) {
-            Intent intent = new Intent();
-            intent.putExtra("id", id);
-            intent.putExtra("title", Objects.requireNonNull(title.getText()).toString());
-            intent.putExtra("desc", Objects.requireNonNull(description.getText()).toString());
-            intent.putExtra("date", String.format("%s\n%s", currentDate, currentTime));
-            intent.putExtra("priority", single_choice_selected);
-            setResult(RESULT_OK, intent);
+            if (id == null) {
+                presenter.saveNote(Objects.requireNonNull(title.getText()).toString(), Objects.requireNonNull(description.getText()).toString(), String.format("%s\n%s", CURRENT_DATE, CURRENT_TIME), single_choice_selected);
+            } else {
+                presenter.replaceNote(id, Objects.requireNonNull(title.getText()).toString(), Objects.requireNonNull(description.getText()).toString(), presenter.get(id).getCreate_date(), String.format("%s\n%s", CURRENT_DATE, CURRENT_TIME), single_choice_selected);
+            }
             finish();
         }
         if (menuItem.getItemId() == R.id.action_priority) {
@@ -174,58 +195,18 @@ public class AddNotes extends AppCompatActivity {
         }
         if (menuItem.getItemId() == R.id.action_to_txt) {
             saveFile(Objects.requireNonNull(title.getText()).toString(), Objects.requireNonNull(description.getText()).toString());
-            /*Intent sharingIntent = new Intent(Intent.ACTION_SEND);
-            sharingIntent.setType("text/*");
-            sharingIntent.putExtra(Intent.EXTRA_STREAM, Uri.parse("file://" + file.getAbsolutePath()));
-            startActivity(Intent.createChooser(sharingIntent, "share file with"));*/
-
         }
         if (menuItem.getItemId() == R.id.action_photo) {
             Intent photoPickerIntent = new Intent(Intent.ACTION_PICK);
             photoPickerIntent.setType("image/*");
             startActivityForResult(photoPickerIntent, 123);
-
         }
         if (menuItem.getItemId() == R.id.action_sharing) {
-            ArrayList<Uri> imageUri = new ArrayList<>();
-            for (int i = 0; i < rstt.size(); i++) {
-                Bitmap bitmap = BitmapFactory.decodeByteArray(rstt.get(i).getImage(), 0, rstt.get(i).getImage().length);
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, new ByteArrayOutputStream());
-                String path = MediaStore.Images.Media.insertImage(getContentResolver(), bitmap, "Title", null);
-                imageUri.add(Uri.parse(path));
-            }
-            Intent intent = null;
-            if (rstt.size() > 1) {
-                intent = new Intent(Intent.ACTION_SEND_MULTIPLE);
-                intent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, imageUri);
-            } else if (rstt.size() == 1) {
-                intent = new Intent(Intent.ACTION_SEND);
-                intent.putExtra(Intent.EXTRA_STREAM, imageUri.get(0));
-            }
-            Objects.requireNonNull(intent).setType("image/*");
-            intent.putExtra(Intent.EXTRA_TEXT, String.format("Title:\n%s\nDescription:\n%s\n%s", Objects.requireNonNull(title.getText()).toString(),
-                    Objects.requireNonNull(description.getText()).toString(), date.getText().toString()) + "\nhttps://play.google.com/store/apps/details?id=" + getPackageName());
-
-            startActivity(Intent.createChooser(intent, "Share with"));
-
-
+            startActivity(Utils.shareNote(Objects.requireNonNull(title.getText()).toString(), Objects.requireNonNull(description.getText()).toString(), date.getText().toString(), rst, getApplicationContext()));
         }
         return super.onOptionsItemSelected(menuItem);
     }
 
-
-
-
-
-
-    List<byte[]> byteImage = new ArrayList<>();
-    List<Item> rst = new ArrayList<>();
-    List<Item> rstt = new ArrayList<>();
-
-    Bitmap bitmap;
-
-
-    Uri pickedImage;
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -236,24 +217,22 @@ public class AddNotes extends AppCompatActivity {
         }
     }
 
-    public int single_choice_selected;
-
     private void showSingleChoiceDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Priority");
+        builder.setTitle(getString(R.string.priority));
         builder.setSingleChoiceItems(PRIORITY, 0, (dialogInterface, i) -> single_choice_selected = PR[i]);
         builder.setPositiveButton(R.string.ok, (dialogInterface, i) ->
         {
-            if (single_choice_selected == Util.PRIORITY_RED) {
+            if (single_choice_selected == Utils.PRIORITY_RED) {
                 view_priority.setBackgroundColor(getResources().getColor(R.color.red_600));
             }
-            if (single_choice_selected == Util.PRIORITY_YELLOW) {
+            if (single_choice_selected == Utils.PRIORITY_YELLOW) {
                 view_priority.setBackgroundColor(getResources().getColor(R.color.yellow));
             }
-            if (single_choice_selected == Util.PRIORITY_GREEN) {
+            if (single_choice_selected == Utils.PRIORITY_GREEN) {
                 view_priority.setBackgroundColor(getResources().getColor(R.color.green));
             }
-            if (single_choice_selected == Util.PRIORITY_DEFAULT) {
+            if (single_choice_selected == Utils.PRIORITY_DEFAULT) {
                 view_priority.setBackgroundColor(0);
             }
         });
@@ -261,7 +240,29 @@ public class AddNotes extends AppCompatActivity {
         builder.show();
     }
 
+    @Override
+    public void showProgress() {
+        progressDialog.show();
+    }
+
+    @Override
+    public void hideProgress() {
+        progressDialog.hide();
+    }
+
+    @Override
+    public void onAddSuccess(String message) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onAddError(String message) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+    }
+
+
     public void enableActionMode(int i) {
+
         if (actionMode == null) {
             actionMode = startSupportActionMode(actionModeCallback);
         }
@@ -273,49 +274,11 @@ public class AddNotes extends AppCompatActivity {
         int selectedItemCount = mAdapter.getSelectedItemCount();
         if (selectedItemCount == 0) {
             actionMode.finish();
-            return;
-        }
-        actionMode.setTitle(String.valueOf(selectedItemCount));
-        actionMode.invalidate();
-    }
-
-    private class ActionModeCallback implements ActionMode.Callback {
-        public boolean onPrepareActionMode(ActionMode actionMode, Menu menu) {
-            return false;
-        }
-
-        private ActionModeCallback() {
-        }
-
-        public boolean onCreateActionMode(ActionMode action, Menu menu) {
-            Tools.setSystemBarColor(AddNotes.this, R.color.blue_grey_700);
-            action.getMenuInflater().inflate(R.menu.menu_delete, menu);
-
-            return true;
-        }
-
-        public boolean onActionItemClicked(ActionMode action, MenuItem menuItem) {
-            if (menuItem.getItemId() != R.id.action_delete) {
-                return false;
-            }
-            deleteInboxes();
-            action.finish();
-
-            return false;
-        }
-
-        public void onDestroyActionMode(ActionMode action) {
-            mAdapter.clearSelections();
-            Tools.setSystemBarColor(AddNotes.this, R.color.colorPrimaryDark);
             actionMode = null;
-        }
-    }
+        } else {
+            actionMode.setTitle(String.valueOf(selectedItemCount));
+            actionMode.invalidate();
 
-    public void deleteInboxes() {
-        List<Integer> selectedItems = mAdapter.getSelectedItems();
-        for (int size = selectedItems.size() - 1; size >= 0; size--) {
-            mAdapter.removeData(selectedItems.get(size));
         }
-        mAdapter.notifyDataSetChanged();
     }
 }

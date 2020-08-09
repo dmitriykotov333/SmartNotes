@@ -1,4 +1,4 @@
-package com.kotov.smartnotes.action.imageadapter;
+package com.kotov.smartnotes.model;
 
 
 import io.realm.RealmObject;

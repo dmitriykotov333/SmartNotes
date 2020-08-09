@@ -2,5 +2,9 @@
     <string name="app_name">SmartNotes</string>
     <string name="toolbar_title">Smart Notes</string>
     <string name="cancel">Cancel</string>
-    <string name="ok">Ok</string>
+    <string name="ok">OK</string>
+    <string name="please_wait">Please wait…</string>
+    <string name="priority">Priority</string>
+    <string name="successful">Successful</string>
+    <string name="empty">Note is empty! Note was deleted</string>
 </resources>

@@ -3,13 +3,21 @@ package com.kotov.smartnotes.activity.editor;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.text.Spannable;
+import android.text.SpannableStringBuilder;
+import android.text.style.ImageSpan;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import com.kotov.smartnotes.R;
 import com.kotov.smartnotes.adapter.AdapterImage;
 import com.kotov.smartnotes.model.Item;
@@ -72,6 +80,7 @@ public class Notes extends AppCompatActivity implements View {
         single_choice_selected = PR[0];
         if (id != null) {
             title.setText(presenter.get(id).getTitle());
+            //description.setText(getSpannable(presenter.get(id).getDescription(), presenter.get(id).getImage()));
             description.setText(presenter.get(id).getDescription());
             single_choice_selected = presenter.get(id).getPriority();
             date.setText(String.format("Create notes:\n%s\nUpdate notes:\n%s", presenter.get(id).getCreate_date(), presenter.get(id).getUpdate_date()));
@@ -81,6 +90,24 @@ public class Notes extends AppCompatActivity implements View {
         progressDialog = new ProgressDialog(this);
         progressDialog.setMessage(getString(R.string.please_wait));
     }
+
+    /*private SpannableStringBuilder getSpannable(String string, List<Item> rst) {
+        SpannableStringBuilder ssb = new SpannableStringBuilder(string);
+        Drawable drawable;
+        for (int i = 0; i < rst.size(); i++) {
+            Bitmap smiley = BitmapFactory.decodeByteArray(rst.get(i).getImage(), 0, rst.get(i).getImage().length);
+            drawable = new BitmapDrawable(getResources(), smiley);
+            drawable.setBounds(0, 0, 400, 400);
+
+            String newStr = drawable.toString() + "\n";
+            //ssb.append(newStr);
+            ssb.setSpan(new ImageSpan(drawable),
+                    ssb.length() - newStr.length(),
+                    ssb.length() - "\n".length() ,
+                    Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
+        }
+        return ssb;
+    }*/
 
     @Override
     protected void onPause() {
@@ -203,6 +230,10 @@ public class Notes extends AppCompatActivity implements View {
         }
         if (menuItem.getItemId() == R.id.action_sharing) {
             startActivity(Utils.shareNote(Objects.requireNonNull(title.getText()).toString(), Objects.requireNonNull(description.getText()).toString(), date.getText().toString(), rst, getApplicationContext()));
+        }
+        if (menuItem.getItemId() == R.id.action_delete) {
+            presenter.deleteNote(id);
+            finish();
         }
         return super.onOptionsItemSelected(menuItem);
     }

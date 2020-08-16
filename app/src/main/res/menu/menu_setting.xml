@@ -6,9 +6,15 @@
         android:orderInCategory="1"
         android:title="Save"
         app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_delete"
+        android:orderInCategory="2"
+        android:title="Delete note"
+        app:showAsAction="ifRoom" />
     <item
         android:id="@+id/action_priority"
-        android:orderInCategory="2"
+        android:orderInCategory="6"
         android:title="важность"
         app:showAsAction="ifRoom" />
     <item

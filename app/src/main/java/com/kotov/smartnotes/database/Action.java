@@ -12,6 +12,7 @@ import java.util.List;
 
 import io.realm.Realm;
 import io.realm.RealmResults;
+import io.realm.Sort;
 import io.realm.exceptions.RealmException;
 
 /**
@@ -86,7 +87,7 @@ public class Action implements AutoCloseable {
     }
 
     public List<Inbox> getNotes() {
-        return mRealm.where(Inbox.class).findAll().sort("priority");
+          return mRealm.where(Inbox.class).findAll().sort("create_date", Sort.DESCENDING).sort("priority");
     }
 
 

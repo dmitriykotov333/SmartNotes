@@ -36,7 +36,10 @@ class Presenter {
     }
 
     void deleteNote(String id) {
+        view.showProgress();
         action.remove(id);
+        view.hideProgress();
+        view.onAddSuccess(context.getString(R.string.successful));
     }
 
     void replaceNote(String id, String title, String description, String create_date, String update_date, int priority) {

@@ -87,7 +87,7 @@ public class Action implements AutoCloseable {
     }
 
     public List<Inbox> getNotes() {
-          return mRealm.where(Inbox.class).findAll().sort("create_date", Sort.DESCENDING).sort("priority");
+          return mRealm.where(Inbox.class).findAll().sort("update_date", Sort.DESCENDING).sort("priority");
     }
 
 

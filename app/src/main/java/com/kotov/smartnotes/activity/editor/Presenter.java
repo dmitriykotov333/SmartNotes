@@ -26,7 +26,7 @@ class Presenter {
         view.showProgress();
         if (title != null || description != null) {
             view.hideProgress();
-            action.add(new Inbox(title, description, create_date, "", priority));
+            action.add(new Inbox(title, description, create_date, create_date, priority));
             view.onAddSuccess(context.getString(R.string.successful));
         }
         if (title == null && description == null) {

@@ -1,5 +1,6 @@
 package com.kotov.smartnotes.adapter;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
@@ -12,6 +13,7 @@ import com.kotov.smartnotes.model.Inbox;
 import com.kotov.smartnotes.R;
 import com.kotov.smartnotes.utils.Utils;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -124,7 +126,11 @@ public class AdapterList extends RecyclerView.Adapter<AdapterList.ViewHolder> {
     }
 
     public int getItemCount() {
-        return items.size();
+        if (items != null) {
+            return items.size();
+        } else {
+            return 0;
+        }
     }
 
     public void toggleSelection(int i) {
@@ -138,8 +144,8 @@ public class AdapterList extends RecyclerView.Adapter<AdapterList.ViewHolder> {
     }
 
     public void clearSelections() {
-        selected_items.clear();
-        notifyDataSetChanged();
+            selected_items.clear();
+            notifyDataSetChanged();
     }
 
     public int getSelectedItemCount() {

@@ -8,4 +8,5 @@
     <string name="successful">Successful</string>
     <string name="empty">Note is empty! Note was deleted</string>
     <string name="title">Введите заголовок</string>
+    <string name="SAVE">Save</string>
 </resources>

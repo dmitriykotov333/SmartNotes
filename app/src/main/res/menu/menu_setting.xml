@@ -18,6 +18,21 @@
         android:title="важность"
         app:showAsAction="ifRoom" />
     <item
+        android:id="@+id/action_fix_note"
+        android:orderInCategory="7"
+        android:title="fix note"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_category"
+        android:orderInCategory="8"
+        android:title="Category"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_password"
+        android:orderInCategory="7"
+        android:title="password"
+        app:showAsAction="ifRoom" />
+    <item
         android:id="@+id/action_photo"
         android:orderInCategory="3"
         android:title="добавить фото"

@@ -1,19 +1,16 @@
 package com.kotov.smartnotes.activity.editor;
 
+import android.annotation.SuppressLint;
+import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.text.Spannable;
-import android.text.SpannableStringBuilder;
-import android.text.style.ImageSpan;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -30,7 +27,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 
 import androidx.annotation.Nullable;
@@ -42,7 +38,10 @@ import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import io.realm.Realm;
+import io.realm.RealmList;
 
+import static android.view.View.GONE;
+import static androidx.constraintlayout.widget.ConstraintSet.VISIBLE;
 import static com.kotov.smartnotes.file.Save.saveFile;
 import static com.kotov.smartnotes.utils.Utils.PR;
 import static com.kotov.smartnotes.utils.Utils.PRIORITY;
@@ -51,7 +50,7 @@ public class Notes extends AppCompatActivity implements View {
 
     private com.google.android.material.textfield.TextInputEditText title;
     private com.google.android.material.textfield.TextInputEditText description;
-    private String id;
+    private String id, keys;
     private android.view.View view_priority;
     private TextView date;
     private AdapterImage mAdapter;
@@ -62,11 +61,18 @@ public class Notes extends AppCompatActivity implements View {
     private Uri pickedImage;
     private List<Item> rst = new ArrayList<>();
     private Bitmap bitmap;
+    private String key;
     private int single_choice_selected;
+    private String password = null;
+    private boolean fixed = false;
+    private RealmList<Item> realmList = new RealmList<>();
+    private RecyclerView recyclerView;
 
-    private String CURRENT_DATE = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(new Date());
-
-    private String CURRENT_TIME = new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date());
+    private String getDate() {
+        @SuppressLint("SimpleDateFormat") SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        Date date = new Date();
+        return dateFormat.format(date);
+    }
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -77,37 +83,26 @@ public class Notes extends AppCompatActivity implements View {
         initView();
         Intent intent = getIntent();
         id = intent.getStringExtra("id");
+        keys = intent.getStringExtra("key");
+        if (keys == null) {
+            keys = Utils.CATEGORY_DEFAULT;
+        }
+        key = keys;
         single_choice_selected = PR[0];
         if (id != null) {
             title.setText(presenter.get(id).getTitle());
-            //description.setText(getSpannable(presenter.get(id).getDescription(), presenter.get(id).getImage()));
+            password = presenter.get(id).getPassword();
+            fixed = presenter.get(id).isFixNote();
+            rst = presenter.get(id).getImage();
             description.setText(presenter.get(id).getDescription());
             single_choice_selected = presenter.get(id).getPriority();
             date.setText(String.format("Create notes:\n%s\nUpdate notes:\n%s", presenter.get(id).getCreate_date(), presenter.get(id).getUpdate_date()));
-            rst = presenter.get(id).getImage();
-            initComponent(pickedImage);
         }
+        initComponent(pickedImage);
         progressDialog = new ProgressDialog(this);
         progressDialog.setMessage(getString(R.string.please_wait));
     }
 
-    /*private SpannableStringBuilder getSpannable(String string, List<Item> rst) {
-        SpannableStringBuilder ssb = new SpannableStringBuilder(string);
-        Drawable drawable;
-        for (int i = 0; i < rst.size(); i++) {
-            Bitmap smiley = BitmapFactory.decodeByteArray(rst.get(i).getImage(), 0, rst.get(i).getImage().length);
-            drawable = new BitmapDrawable(getResources(), smiley);
-            drawable.setBounds(0, 0, 400, 400);
-
-            String newStr = drawable.toString() + "\n";
-            //ssb.append(newStr);
-            ssb.setSpan(new ImageSpan(drawable),
-                    ssb.length() - newStr.length(),
-                    ssb.length() - "\n".length() ,
-                    Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
-        }
-        return ssb;
-    }*/
 
     @Override
     protected void onPause() {
@@ -134,9 +129,11 @@ public class Notes extends AppCompatActivity implements View {
         title = findViewById(R.id.notes_title);
         description = findViewById(R.id.notes_description);
         view_priority = findViewById(R.id.view_priority);
+        view_priority.setVisibility(GONE);
         date = findViewById(R.id.date);
     }
 
+    @SuppressLint("WrongConstant")
     private void initComponent(Uri pickedImage) {
         if (pickedImage != null) {
             try {
@@ -152,12 +149,17 @@ public class Notes extends AppCompatActivity implements View {
                 realm.insertOrUpdate(rst);
             });
         }
-        RecyclerView recyclerView = findViewById(R.id.recyclerView);
+        recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         recyclerView.addItemDecoration(new DividerItemDecoration(this, 1));
         recyclerView.setHasFixedSize(true);
         mAdapter = new AdapterImage(this, rst);
-        recyclerView.setAdapter(mAdapter);
+        if (mAdapter.getItemCount() == 0) {
+            recyclerView.setVisibility(GONE);
+        } else {
+            recyclerView.setVisibility(VISIBLE);
+            recyclerView.setAdapter(mAdapter);
+        }
         mAdapter.setOnClickListener(new OnClickListener<Item>() {
             public void onItemClick(android.view.View view, Item inbox, int i) {
                 if (mAdapter.getSelectedItemCount() > 0) {
@@ -189,7 +191,12 @@ public class Notes extends AppCompatActivity implements View {
 
             @Override
             public void onDestroyActionMode(ActionMode action) {
+                Utils.setSystemBarColor(Notes.this, R.color.colorPrimaryDark);
+                actionMode = null;
                 mAdapter.clearSelections();
+                if (mAdapter.getItemCount() == 0) {
+                    recyclerView.setVisibility(GONE);
+                }
             }
 
             @Override
@@ -207,13 +214,19 @@ public class Notes extends AppCompatActivity implements View {
         getMenuInflater().inflate(R.menu.menu_setting, menu);
         return true;
     }
-
     public boolean onOptionsItemSelected(MenuItem menuItem) {
         if (menuItem.getItemId() == R.id.action_save) {
+            String time  = getDate();
+            realmList.addAll(rst);
             if (id == null) {
-                presenter.saveNote(Objects.requireNonNull(title.getText()).toString(), Objects.requireNonNull(description.getText()).toString(), String.format("%s\n%s", CURRENT_DATE, CURRENT_TIME), single_choice_selected);
+                presenter.saveNote(keys, Objects.requireNonNull(title.getText()).toString(), Objects.requireNonNull(description.getText()).toString(), time, time, single_choice_selected, password, fixed, realmList);
             } else {
-                presenter.replaceNote(id, Objects.requireNonNull(title.getText()).toString(), Objects.requireNonNull(description.getText()).toString(), presenter.get(id).getCreate_date(), String.format("%s\n%s", CURRENT_DATE, CURRENT_TIME), single_choice_selected);
+                String date = presenter.get(id).getCreate_date();
+                if (!key.equals(keys)) {
+                    presenter.deleteNote(key, id);
+                    presenter.saveNote(keys, Objects.requireNonNull(title.getText()).toString(), Objects.requireNonNull(description.getText()).toString(), date, time, single_choice_selected, password, fixed, realmList);
+                }
+                presenter.replaceNote(keys, id, Objects.requireNonNull(title.getText()).toString(), Objects.requireNonNull(description.getText()).toString(), date, time, single_choice_selected, password, fixed, realmList);
             }
             finish();
         }
@@ -232,10 +245,81 @@ public class Notes extends AppCompatActivity implements View {
             startActivity(Utils.shareNote(Objects.requireNonNull(title.getText()).toString(), Objects.requireNonNull(description.getText()).toString(), date.getText().toString(), rst, getApplicationContext()));
         }
         if (menuItem.getItemId() == R.id.action_delete) {
-            presenter.deleteNote(id);
+            presenter.deleteNote(keys, id);
             finish();
         }
+        if (menuItem.getItemId() == R.id.action_password) {
+            showCustomDialog();
+        }
+        if (menuItem.getItemId() == R.id.action_category) {
+            showCustomDialogCategory();
+        }
+        if (menuItem.getItemId() == R.id.action_fix_note) {
+            if (fixed == false) {
+                fixed = true;
+            } else {
+                fixed = false;
+            }
+        }
         return super.onOptionsItemSelected(menuItem);
+    }
+
+    public void showCustomDialog() {
+        Dialog dialog = new Dialog(this);
+        dialog.requestWindowFeature(1);
+        dialog.setContentView(R.layout.dialog_password);
+        dialog.setCancelable(true);
+        WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams();
+        layoutParams.copyFrom(dialog.getWindow().getAttributes());
+        layoutParams.width = -1;
+        layoutParams.height = -2;
+        EditText editText = dialog.findViewById(R.id.password);
+        editText.setText(password);
+        (dialog.findViewById(R.id.bt_close)).setOnClickListener(v -> {
+            dialog.dismiss();
+            password = null;
+        });
+        (dialog.findViewById(R.id.bt_save)).setOnClickListener(v -> {
+            if (editText.getText().toString().length() == 0) {
+                password = null;
+            } else {
+                password = editText.getText().toString();
+            }
+            dialog.dismiss();
+        });
+        dialog.show();
+        dialog.getWindow().setAttributes(layoutParams);
+    }
+
+    public void showCustomDialogCategory() {
+        Dialog dialog = new Dialog(this);
+        dialog.requestWindowFeature(1);
+        dialog.setContentView(R.layout.dialog_password);
+        dialog.setCancelable(true);
+        WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams();
+        layoutParams.copyFrom(dialog.getWindow().getAttributes());
+        layoutParams.width = -1;
+        layoutParams.height = -2;
+        EditText editText = dialog.findViewById(R.id.password);
+        if (keys.equals(Utils.CATEGORY_DEFAULT)) {
+            editText.setText("");
+        } else {
+            editText.setText(keys);
+        }
+        (dialog.findViewById(R.id.bt_close)).setOnClickListener(v -> {
+            dialog.dismiss();
+            keys = "default";
+        });
+        (dialog.findViewById(R.id.bt_save)).setOnClickListener(v -> {
+            if (editText.getText().toString().length() == 0) {
+                keys = "default";
+            } else {
+                keys = editText.getText().toString();
+            }
+            dialog.dismiss();
+        });
+        dialog.show();
+        dialog.getWindow().setAttributes(layoutParams);
     }
 
 
@@ -265,7 +349,9 @@ public class Notes extends AppCompatActivity implements View {
             }
             if (single_choice_selected == Utils.PRIORITY_DEFAULT) {
                 view_priority.setBackgroundColor(0);
+                view_priority.setVisibility(GONE);
             }
+            view_priority.setVisibility(android.view.View.VISIBLE);
         });
         builder.setNegativeButton(R.string.cancel, null);
         builder.show();
@@ -305,7 +391,6 @@ public class Notes extends AppCompatActivity implements View {
         int selectedItemCount = mAdapter.getSelectedItemCount();
         if (selectedItemCount == 0) {
             actionMode.finish();
-            actionMode = null;
         } else {
             actionMode.setTitle(String.valueOf(selectedItemCount));
             actionMode.invalidate();

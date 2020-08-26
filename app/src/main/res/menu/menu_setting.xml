@@ -28,6 +28,11 @@
         android:title="Category"
         app:showAsAction="ifRoom" />
     <item
+        android:id="@+id/action_checkbox"
+        android:orderInCategory="9"
+        android:title="Add checkbox"
+        app:showAsAction="ifRoom" />
+    <item
         android:id="@+id/action_password"
         android:orderInCategory="7"
         android:title="password"

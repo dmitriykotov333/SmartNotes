@@ -26,6 +26,7 @@ public class Inbox extends RealmObject {
     private String password;
     private boolean fixNote;
     private RealmList<Item> image;
+    private RealmList<Check> checks;
     public Inbox() {
 
     }
@@ -39,7 +40,7 @@ public class Inbox extends RealmObject {
         this.fixNote = fixNote;
         this.image = image;
     }*/
-    public Inbox(String title, String description, String create_date, String update_date, int priority, String password, boolean fixNote, RealmList<Item> image) {
+    public Inbox(String title, String description, String create_date, String update_date, int priority, String password, boolean fixNote, RealmList<Item> image, RealmList<Check> checks) {
         this.title = title;
         this.description = description;
         this.create_date = create_date;
@@ -48,6 +49,7 @@ public class Inbox extends RealmObject {
         this.password = password;
         this.fixNote = fixNote;
         this.image = image;
+        this.checks = checks;
     }
 
     public String getTitle() {
@@ -115,18 +117,11 @@ public class Inbox extends RealmObject {
         this.fixNote = fixNote;
     }
 
+    public RealmList<Check> getChecks() {
+        return checks;
+    }
 
-
-    private Date getDate(String dtStart) {
-        //String dtStart = "2010-10-15T09:27:37Z";
-        Date date = null;
-        @SuppressLint("SimpleDateFormat") SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-        try {
-            date = format.parse(dtStart);
-            System.out.println(date);
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-        return date;
+    public void setChecks(RealmList<Check> checks) {
+        this.checks = checks;
     }
 }

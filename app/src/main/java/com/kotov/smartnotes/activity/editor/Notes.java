@@ -17,6 +17,9 @@ import android.widget.Toast;
 
 import com.kotov.smartnotes.R;
 import com.kotov.smartnotes.adapter.AdapterImage;
+import com.kotov.smartnotes.adapter.draggable.AdapterCheck;
+import com.kotov.smartnotes.adapter.draggable.DragItemTouchHelper;
+import com.kotov.smartnotes.model.Check;
 import com.kotov.smartnotes.model.Item;
 import com.kotov.smartnotes.adapter.OnClickListener;
 import com.kotov.smartnotes.utils.Utils;
@@ -35,6 +38,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.view.ActionMode;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import io.realm.Realm;
@@ -60,18 +64,85 @@ public class Notes extends AppCompatActivity implements View {
     private Presenter presenter;
     private Uri pickedImage;
     private List<Item> rst = new ArrayList<>();
+    private List<Check> checkList = new ArrayList<>();
     private Bitmap bitmap;
     private String key;
     private int single_choice_selected;
     private String password = null;
     private boolean fixed = false;
     private RealmList<Item> realmList = new RealmList<>();
+    private RealmList<Check> checkRealmList = new RealmList<>();
     private RecyclerView recyclerView;
-
+    private TextView textView;
     private String getDate() {
         @SuppressLint("SimpleDateFormat") SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Date date = new Date();
         return dateFormat.format(date);
+    }
+
+    /*
+    List Drag
+     */
+
+    private AdapterCheck adapterCheck;
+    private RecyclerView recyclerViewCheck;
+    private ItemTouchHelper mItemTouchHelper;
+    @SuppressLint("WrongConstant")
+    private void initComponentCheck() {
+
+        recyclerViewCheck = (RecyclerView) findViewById(R.id.recyclerView_check);
+        recyclerViewCheck.setLayoutManager(new LinearLayoutManager(this));
+        recyclerViewCheck.setHasFixedSize(true);
+        adapterCheck = new AdapterCheck(this, checkList);
+        recyclerViewCheck.setAdapter(adapterCheck);
+        adapterCheck.setOnItemClickListener(new AdapterCheck.OnItemClickListener() {
+            @Override
+            public void onItemClick(android.view.View view, Check social, int i) {
+                Toast.makeText(Notes.this, social.getTitle(), Toast.LENGTH_SHORT).show();
+            }
+        });
+        adapterCheck.setOnClickListener(new OnClickListener<Check>() {
+            @Override
+            public void onItemClick(android.view.View view, Check inbox, int i) {
+                adapterCheck.deleteItem(i);
+                recyclerViewCheck.scrollToPosition(mAdapter.getItemCount());
+            }
+
+            @Override
+            public void onItemLongClick(android.view.View view, Check inbox, int i) {
+
+            }
+        });
+        adapterCheck.setDragListener(new AdapterCheck.OnStartDragListener() {
+            public void onStartDrag(RecyclerView.ViewHolder viewHolder) {
+                mItemTouchHelper.startDrag(viewHolder);
+            }
+        });
+        mItemTouchHelper = new ItemTouchHelper(new DragItemTouchHelper(adapterCheck));
+        mItemTouchHelper.attachToRecyclerView(recyclerViewCheck);
+        textView = findViewById(R.id.add_check);
+        if (!checkList.isEmpty()) {
+            textView.setVisibility(VISIBLE);
+        } else {
+            textView.setVisibility(GONE);
+        }
+        textView.setOnClickListener(new android.view.View.OnClickListener() {
+            @Override
+            public void onClick(android.view.View v) {
+                adapterCheck.addItem(new Check("", false), adapterCheck.getItemCount());
+                recyclerViewCheck.scrollToPosition(mAdapter.getItemCount() - 1);
+            }
+        });
+    }
+
+    private List<Check> getCheck() {
+        List<Check> list = new ArrayList<>();
+        list.add(new Check("Title 1", false));
+        list.add(new Check("Title 2", false));
+        list.add(new Check("Title 3", false));
+        list.add(new Check("Title 4", false));
+        list.add(new Check("Title 5", false));
+        return list;
     }
 
     @Override
@@ -94,11 +165,13 @@ public class Notes extends AppCompatActivity implements View {
             password = presenter.get(id).getPassword();
             fixed = presenter.get(id).isFixNote();
             rst = presenter.get(id).getImage();
+            checkList = presenter.get(id).getChecks();
             description.setText(presenter.get(id).getDescription());
             single_choice_selected = presenter.get(id).getPriority();
             date.setText(String.format("Create notes:\n%s\nUpdate notes:\n%s", presenter.get(id).getCreate_date(), presenter.get(id).getUpdate_date()));
         }
         initComponent(pickedImage);
+        initComponentCheck();
         progressDialog = new ProgressDialog(this);
         progressDialog.setMessage(getString(R.string.please_wait));
     }
@@ -214,19 +287,21 @@ public class Notes extends AppCompatActivity implements View {
         getMenuInflater().inflate(R.menu.menu_setting, menu);
         return true;
     }
+    @SuppressLint("WrongConstant")
     public boolean onOptionsItemSelected(MenuItem menuItem) {
         if (menuItem.getItemId() == R.id.action_save) {
             String time  = getDate();
             realmList.addAll(rst);
+            checkRealmList.addAll(checkList);
             if (id == null) {
-                presenter.saveNote(keys, Objects.requireNonNull(title.getText()).toString(), Objects.requireNonNull(description.getText()).toString(), time, time, single_choice_selected, password, fixed, realmList);
+                presenter.saveNote(keys, Objects.requireNonNull(title.getText()).toString(), Objects.requireNonNull(description.getText()).toString(), time, time, single_choice_selected, password, fixed, realmList, checkRealmList);
             } else {
                 String date = presenter.get(id).getCreate_date();
                 if (!key.equals(keys)) {
-                    presenter.deleteNote(key, id);
-                    presenter.saveNote(keys, Objects.requireNonNull(title.getText()).toString(), Objects.requireNonNull(description.getText()).toString(), date, time, single_choice_selected, password, fixed, realmList);
+                    presenter.deleteNote(/*key,*/ id);
+                    presenter.saveNote(keys, Objects.requireNonNull(title.getText()).toString(), Objects.requireNonNull(description.getText()).toString(), date, time, single_choice_selected, password, fixed, realmList, checkRealmList);
                 }
-                presenter.replaceNote(keys, id, Objects.requireNonNull(title.getText()).toString(), Objects.requireNonNull(description.getText()).toString(), date, time, single_choice_selected, password, fixed, realmList);
+                presenter.replaceNote(keys, id, Objects.requireNonNull(title.getText()).toString(), Objects.requireNonNull(description.getText()).toString(), date, time, single_choice_selected, password, fixed, realmList, checkRealmList);
             }
             finish();
         }
@@ -245,7 +320,7 @@ public class Notes extends AppCompatActivity implements View {
             startActivity(Utils.shareNote(Objects.requireNonNull(title.getText()).toString(), Objects.requireNonNull(description.getText()).toString(), date.getText().toString(), rst, getApplicationContext()));
         }
         if (menuItem.getItemId() == R.id.action_delete) {
-            presenter.deleteNote(keys, id);
+            presenter.deleteNote(/*keys,*/ id);
             finish();
         }
         if (menuItem.getItemId() == R.id.action_password) {
@@ -260,6 +335,11 @@ public class Notes extends AppCompatActivity implements View {
             } else {
                 fixed = false;
             }
+        }
+        if (menuItem.getItemId() == R.id.action_checkbox) {
+            adapterCheck.addItem(new Check("", false), adapterCheck.getItemCount());
+            recyclerViewCheck.scrollToPosition(mAdapter.getItemCount() - 1);
+            textView.setVisibility(VISIBLE);
         }
         return super.onOptionsItemSelected(menuItem);
     }

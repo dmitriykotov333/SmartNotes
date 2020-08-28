@@ -44,6 +44,7 @@ public class AdapterCheck extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
     private OnClickListener<Check> onClickListener;
 
 
+
     public void setOnClickListener(OnClickListener<Check> onClickListener) {
         this.onClickListener = onClickListener;
     }

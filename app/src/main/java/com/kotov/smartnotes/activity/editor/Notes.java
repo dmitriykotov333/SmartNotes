@@ -1,8 +1,12 @@
 package com.kotov.smartnotes.activity.editor;
 
 import android.annotation.SuppressLint;
+import android.app.AlarmManager;
 import android.app.Dialog;
+import android.app.PendingIntent;
 import android.app.ProgressDialog;
+import android.app.TimePickerDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -13,6 +17,7 @@ import android.view.MenuItem;
 import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.TimePicker;
 import android.widget.Toast;
 
 import com.kotov.smartnotes.R;
@@ -23,11 +28,15 @@ import com.kotov.smartnotes.model.Check;
 import com.kotov.smartnotes.model.Item;
 import com.kotov.smartnotes.adapter.OnClickListener;
 import com.kotov.smartnotes.utils.Utils;
+import com.kotov.smartnotes.utils.alarm.AlarmReceiver;
+import com.kotov.smartnotes.utils.alarm.AlarmUtils;
+import com.kotov.smartnotes.utils.alarm.NotificationUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -74,6 +83,7 @@ public class Notes extends AppCompatActivity implements View {
     private RealmList<Check> checkRealmList = new RealmList<>();
     private RecyclerView recyclerView;
     private TextView textView;
+    private int code;
     private String getDate() {
         @SuppressLint("SimpleDateFormat") SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Date date = new Date();
@@ -87,6 +97,7 @@ public class Notes extends AppCompatActivity implements View {
     private AdapterCheck adapterCheck;
     private RecyclerView recyclerViewCheck;
     private ItemTouchHelper mItemTouchHelper;
+
     @SuppressLint("WrongConstant")
     private void initComponentCheck() {
 
@@ -154,10 +165,16 @@ public class Notes extends AppCompatActivity implements View {
         initView();
         Intent intent = getIntent();
         id = intent.getStringExtra("id");
+        boolean check_close = intent.getBooleanExtra("close", false);
+        int close_id = intent.getIntExtra("close_code", -1);
         keys = intent.getStringExtra("key");
         if (keys == null) {
             keys = Utils.CATEGORY_DEFAULT;
         }
+        if (check_close) {
+                AlarmUtils.cancelAlarm(getApplicationContext(), new Intent(getApplicationContext(), AlarmReceiver.class).putExtra("close_id", close_id), close_id);
+        }
+        code = Integer.parseInt(id.substring(11, id.length()).replace(":", ""));
         key = keys;
         single_choice_selected = PR[0];
         if (id != null) {
@@ -287,10 +304,11 @@ public class Notes extends AppCompatActivity implements View {
         getMenuInflater().inflate(R.menu.menu_setting, menu);
         return true;
     }
+
     @SuppressLint("WrongConstant")
     public boolean onOptionsItemSelected(MenuItem menuItem) {
         if (menuItem.getItemId() == R.id.action_save) {
-            String time  = getDate();
+            String time = getDate();
             realmList.addAll(rst);
             checkRealmList.addAll(checkList);
             if (id == null) {
@@ -341,8 +359,57 @@ public class Notes extends AppCompatActivity implements View {
             recyclerViewCheck.scrollToPosition(mAdapter.getItemCount() - 1);
             textView.setVisibility(VISIBLE);
         }
+        if (menuItem.getItemId() == R.id.action_alarm) {
+            openTimePickerDialog(true);
+        }
+        if (menuItem.getItemId() == R.id.action_notifaction) {
+            NotificationUtils.notification(getApplicationContext(), getIntents());
+        }
         return super.onOptionsItemSelected(menuItem);
     }
+
+    // Слушатель выбора времени
+    TimePickerDialog.OnTimeSetListener onTimeSetListener = new TimePickerDialog.OnTimeSetListener() {
+
+        @Override
+        public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+
+            Calendar calNow = Calendar.getInstance();
+            Calendar calSet = (Calendar) calNow.clone();
+
+            calSet.set(Calendar.HOUR_OF_DAY, hourOfDay);
+            calSet.set(Calendar.MINUTE, minute);
+            calSet.set(Calendar.SECOND, 0);
+            calSet.set(Calendar.MILLISECOND, 0);
+
+            if (calSet.compareTo(calNow) <= 0) {
+                // Если выбранное время на сегодня прошло,
+                // то переносим на завтра
+                calSet.add(Calendar.DATE, 1);
+            }
+            //setAlarm(calSet);
+
+            AlarmUtils.addAlarm(getApplicationContext(), getIntents(), code, calSet);
+        }
+    };
+
+    private Intent getIntents() {
+        Intent intent = new Intent(getApplicationContext(), AlarmReceiver.class);
+        intent.putExtra("title", title.getText().toString());
+        intent.putExtra("id", id);
+        intent.putExtra("close_id", code);
+        return intent;
+    }
+    private void openTimePickerDialog(boolean is24r) {
+        Calendar calendar = Calendar.getInstance();
+
+        TimePickerDialog timePickerDialog = new TimePickerDialog(this, onTimeSetListener,
+                calendar.get(Calendar.HOUR_OF_DAY),
+                calendar.get(Calendar.MINUTE), is24r);
+        timePickerDialog.setTitle("Выберите время");
+        timePickerDialog.show();
+    }
+
 
     public void showCustomDialog() {
         Dialog dialog = new Dialog(this);

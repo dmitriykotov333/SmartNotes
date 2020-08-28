@@ -33,6 +33,16 @@
         android:title="Add checkbox"
         app:showAsAction="ifRoom" />
     <item
+        android:id="@+id/action_alarm"
+        android:orderInCategory="10"
+        android:title="Add alarm"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_notifaction"
+        android:orderInCategory="11"
+        android:title="Fixed Notifaction"
+        app:showAsAction="ifRoom" />
+    <item
         android:id="@+id/action_password"
         android:orderInCategory="7"
         android:title="password"

@@ -2,6 +2,7 @@ package com.kotov.smartnotes.model;
 
 import android.annotation.SuppressLint;
 
+import java.io.Serializable;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -16,7 +17,7 @@ import io.realm.RealmObject;
  * @author dmitriykotov333@gmail.com
  * @since 06.08.2020
  */
-public class Inbox extends RealmObject {
+public class Inbox extends RealmObject implements Serializable {
 
     private String title;
     private String description;

@@ -1,5 +1,4 @@
 package com.kotov.smartnotes.activity.editor;
-
 import android.app.Activity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -45,4 +44,4 @@ public abstract class ActionModeCallback implements ActionMode.Callback {
     public abstract void deleteInbox();
 
 
-}
+} 

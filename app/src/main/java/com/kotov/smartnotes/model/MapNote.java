@@ -1,9 +1,10 @@
 package com.kotov.smartnotes.model;
+import java.io.Serializable;
 
 import io.realm.RealmList;
 import io.realm.RealmObject;
 
-public class MapNote extends RealmObject {
+public class MapNote extends RealmObject implements Serializable {
     private String key;
     private RealmList<Inbox> notes;
 

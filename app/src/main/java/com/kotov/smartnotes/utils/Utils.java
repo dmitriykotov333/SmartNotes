@@ -31,6 +31,8 @@ public class Utils {
     public static final int[] PR = {4, 3, 2, 1};
     public static final String CATEGORY_DEFAULT = "default";
     public static final String CATEGORY_BOOKMAR$KS = "bookmark";
+    public static final Integer ALARM = 1;
+    public static final Integer NOTIFICATION = 0;
 
     public static void setSystemBarColor(Activity activity) {
         if (Build.VERSION.SDK_INT >= 21) {

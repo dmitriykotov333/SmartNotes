@@ -43,6 +43,21 @@
         android:title="Fixed Notifaction"
         app:showAsAction="ifRoom" />
     <item
+        android:id="@+id/action_drawing"
+        android:orderInCategory="12"
+        android:title="Create drawing"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_read_aloud"
+        android:orderInCategory="13"
+        android:title="голосовой ввод"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_read"
+        android:orderInCategory="14"
+        android:title="голосовой текст"
+        app:showAsAction="ifRoom" />
+    <item
         android:id="@+id/action_password"
         android:orderInCategory="7"
         android:title="password"

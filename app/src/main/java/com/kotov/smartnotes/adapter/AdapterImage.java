@@ -10,8 +10,10 @@ import android.widget.RelativeLayout;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.kotov.smartnotes.R;
+import com.kotov.smartnotes.adapter.OnClickListener;
 import com.kotov.smartnotes.model.Item;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import androidx.annotation.NonNull;
@@ -19,7 +21,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import io.realm.Realm;
 import io.realm.RealmResults;
 
-public class AdapterImage extends RecyclerView.Adapter<AdapterImage.ViewHolder> {
+public class AdapterImage extends RecyclerView.Adapter<AdapterImage.ViewHolder> implements Serializable {
     private Context context;
     private int current_selected_idx = -1;
     private List<Item> items;

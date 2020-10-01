@@ -50,8 +50,6 @@ public class AlarmUtils {
         PendingIntent pendingIntent = PendingIntent.getBroadcast(context, notificationId, intent, PendingIntent.FLAG_CANCEL_CURRENT);
         Objects.requireNonNull(alarmManager).cancel(pendingIntent);
         pendingIntent.cancel();
-        Toast.makeText(context, "Дзинь-дзинь! Пора кормить кота" + intent.getIntExtra("close_id", -1),
-                Toast.LENGTH_LONG).show();
         removeAlarmId(context, notificationId);
     }
 

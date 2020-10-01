@@ -117,13 +117,6 @@
                     android:textColor="#000"
                     android:textSize="@dimen/_13sdp" />
             </com.google.android.material.textfield.TextInputLayout>
-            <!--<com.kotov.smartnotes.view.RichTextEditor
-                android:id="@+id/et_new_content"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:scrollbarAlwaysDrawVerticalTrack="true"
-                android:scrollbarTrackVertical="@color/colorAccent"
-                android:gravity="start"/>-->
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 

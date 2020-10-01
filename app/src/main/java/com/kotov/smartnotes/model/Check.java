@@ -6,7 +6,7 @@ import java.util.List;
 
 import io.realm.RealmObject;
 
-public class Check extends RealmObject {
+public class Check extends RealmObject implements Serializable {
     private String title;
     private boolean check;
     public Check() {

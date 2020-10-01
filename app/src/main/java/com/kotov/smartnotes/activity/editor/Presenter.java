@@ -18,13 +18,13 @@ import io.realm.RealmList;
  * @since 10.08.2020
  * Presenter Add Notes
  */
-class Presenter {
+public class Presenter {
 
     private View view;
     private Action action;
     private Context context;
 
-    Presenter(View view, Context context) {
+    public Presenter(View view, Context context) {
         this.view = view;
         this.context = context;
         action = new Action(context);
@@ -75,7 +75,7 @@ class Presenter {
         }
     }
 
-    Inbox get(String id) {
+    public Inbox get(String id) {
         return action.getParameters(id);
     }
 }

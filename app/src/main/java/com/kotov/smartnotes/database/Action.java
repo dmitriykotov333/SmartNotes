@@ -11,6 +11,7 @@ import com.kotov.smartnotes.model.MapNote;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Serializable;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
@@ -37,7 +38,7 @@ import io.realm.exceptions.RealmException;
  * @author dmitriykotov333@gmail.com
  * @since 06.08.2020
  */
-public class Action implements AutoCloseable {
+public class Action implements AutoCloseable, Serializable {
 
     private static final Logger LOG = LoggerFactory.getLogger(Action.class);
     private Realm mRealm;
@@ -80,6 +81,7 @@ public class Action implements AutoCloseable {
         });
 
     }
+
     public void replace(String key, String id, Inbox inbox) {
         RealmResults<MapNote> categories = mRealm.where(MapNote.class).equalTo("key", key).findAll();
         try {
@@ -119,8 +121,9 @@ public class Action implements AutoCloseable {
     }
 
     public List<MapNote> getCategory() {
-            return mRealm.where(MapNote.class).findAll();
+        return mRealm.where(MapNote.class).findAll();
     }
+
     private List<Inbox> checkFixed(String key, boolean b) {
         if (mRealm.where(MapNote.class).equalTo("key", key).findAll().iterator().hasNext()) {
             if (mRealm.where(MapNote.class).equalTo("key", key).findAll().iterator().next().getNotes().iterator().hasNext()) {

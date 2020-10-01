@@ -30,6 +30,7 @@ import com.kotov.smartnotes.database.Action;
 import com.kotov.smartnotes.adapter.AdapterList;
 import com.kotov.smartnotes.adapter.OnClickListener;
 import com.kotov.smartnotes.model.Inbox;
+import com.kotov.smartnotes.model.Item;
 import com.kotov.smartnotes.model.MapNote;
 import com.kotov.smartnotes.utils.Utils;
 
@@ -47,7 +48,7 @@ public class MainActivity extends AppCompatActivity {
     private AdapterList mAdapter, mAdapterFixed;
     private Action action;
 
-
+    private String category = Utils.CATEGORY_DEFAULT;
     public RecyclerView recyclerView_fixed;
     private ImageButton bt_toggle_input;
     private LinearLayout bt_toggle_input_lin;
@@ -67,7 +68,6 @@ public class MainActivity extends AppCompatActivity {
         initComponent(category);
     }
 
-    String category = Utils.CATEGORY_DEFAULT;
 
     private void initToolbar() {
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -128,33 +128,36 @@ public class MainActivity extends AppCompatActivity {
         }
         Inbox item = mAdapter.getItem(i);
         if (item.getPassword() != null) {
-            Dialog dialog = new Dialog(MainActivity.this);
-            dialog.requestWindowFeature(1);
-            dialog.setContentView(R.layout.dialog_password);
-            dialog.setCancelable(true);
-            WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams();
-            layoutParams.copyFrom(dialog.getWindow().getAttributes());
-            layoutParams.width = -1;
-            layoutParams.height = -2;
-            EditText editText = dialog.findViewById(R.id.password);
-            (dialog.findViewById(R.id.bt_close)).setOnClickListener(v -> {
-                dialog.dismiss();
-            });
-            (dialog.findViewById(R.id.bt_save)).setOnClickListener(v -> {
-                if (editText.getText().toString().equals(item.getPassword())) {
-                    startActivity(new Intent(MainActivity.this, Notes.class).putExtra("key", category).putExtra("id", item.getCreate_date()));
-                    dialog.dismiss();
-                } else {
-                    Toast.makeText(MainActivity.this, "Incorrect password", Toast.LENGTH_SHORT).show();
-                }
-            });
-            dialog.show();
-            dialog.getWindow().setAttributes(layoutParams);
+            dialog(item);
         } else {
             startActivity(new Intent(MainActivity.this, Notes.class).putExtra("key", category).putExtra("id", item.getCreate_date()));
         }
     }
 
+    private void dialog(Inbox item) {
+        Dialog dialog = new Dialog(MainActivity.this);
+        dialog.requestWindowFeature(1);
+        dialog.setContentView(R.layout.dialog_password);
+        dialog.setCancelable(true);
+        WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams();
+        layoutParams.copyFrom(dialog.getWindow().getAttributes());
+        layoutParams.width = -1;
+        layoutParams.height = -2;
+        EditText editText = dialog.findViewById(R.id.password);
+        (dialog.findViewById(R.id.bt_close)).setOnClickListener(v -> {
+            dialog.dismiss();
+        });
+        (dialog.findViewById(R.id.bt_save)).setOnClickListener(v -> {
+            if (editText.getText().toString().equals(item.getPassword())) {
+                startActivity(new Intent(MainActivity.this, Notes.class).putExtra("key", category).putExtra("id", item.getCreate_date()));
+                dialog.dismiss();
+            } else {
+                Toast.makeText(MainActivity.this, "Incorrect password", Toast.LENGTH_SHORT).show();
+            }
+        });
+        dialog.show();
+        dialog.getWindow().setAttributes(layoutParams);
+    }
     private void initComponent(String key) {
         /**
          * Init expansion panel
@@ -239,6 +242,7 @@ public class MainActivity extends AppCompatActivity {
                         mAdapterFixed.removeData(selectedItemsF.get(size));
                     }
                     mAdapterFixed.notifyDataSetChanged();
+                    onResume();
                 }
 
             }

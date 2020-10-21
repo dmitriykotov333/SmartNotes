@@ -1,2 +1,3 @@
+include ':sql'
 include ':app'
 rootProject.name='SmartNotes'

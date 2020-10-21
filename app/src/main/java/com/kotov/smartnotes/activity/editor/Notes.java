@@ -12,6 +12,7 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.provider.ContactsContract;
 import android.provider.MediaStore;
 import android.speech.RecognizerIntent;
@@ -21,14 +22,18 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.WindowManager;
 import android.widget.EditText;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.kotov.smartnotes.R;
 import com.kotov.smartnotes.adapter.AdapterImage;
 import com.kotov.smartnotes.adapter.draggable.AdapterCheck;
 import com.kotov.smartnotes.adapter.draggable.DragItemTouchHelper;
+import com.kotov.smartnotes.audiorecord.AudioListAdapter;
+import com.kotov.smartnotes.audiorecord.RecordFragment;
 import com.kotov.smartnotes.model.Check;
 import com.kotov.smartnotes.model.Item;
 import com.kotov.smartnotes.adapter.OnClickListener;
@@ -39,6 +44,7 @@ import com.kotov.smartnotes.utils.alarm.NotificationUtils;
 import com.kotov.smartnotes.utils.drawingview.DrawingViewActivity;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -66,7 +72,7 @@ import static com.kotov.smartnotes.file.Save.saveFile;
 import static com.kotov.smartnotes.utils.Utils.PR;
 import static com.kotov.smartnotes.utils.Utils.PRIORITY;
 
-public class Notes extends AppCompatActivity implements View {
+public class Notes extends AppCompatActivity implements View, AudioListAdapter.onItemListClick {
 
     private com.google.android.material.textfield.TextInputEditText title;
     private com.google.android.material.textfield.TextInputEditText description;
@@ -97,6 +103,117 @@ public class Notes extends AppCompatActivity implements View {
     private AdapterCheck adapterCheck;
     private RecyclerView recyclerViewCheck;
     private ItemTouchHelper mItemTouchHelper;
+    /**
+     * AudioRecorder
+     */
+    private RecyclerView audioList;
+    private File[] allFiles;
+    private AudioListAdapter audioListAdapter;
+    private File fileToPlay = null;
+    private boolean isPlaying = false;
+    private SeekBar playerSeekbar;
+    private Handler seekbarHandler;
+    private Runnable updateSeekbar;
+    private MediaPlayer mediaPlayer = null;
+
+    @Override
+    public void onClickListener(File file, int position) {
+        fileToPlay = file;
+        if (isPlaying) {
+            stopAudio();
+            playAudio(fileToPlay);
+        } else {
+            playAudio(fileToPlay);
+        }
+    }
+
+    private void pauseAudio() {
+        mediaPlayer.pause();
+        isPlaying = false;
+        seekbarHandler.removeCallbacks(updateSeekbar);
+    }
+
+    private void resumeAudio() {
+        mediaPlayer.start();
+        isPlaying = true;
+
+        updateRunnable();
+        seekbarHandler.postDelayed(updateSeekbar, 0);
+
+    }
+
+    private void stopAudio() {
+        isPlaying = false;
+        mediaPlayer.stop();
+        seekbarHandler.removeCallbacks(updateSeekbar);
+    }
+
+    private void playAudio(File fileToPlay) {
+
+        mediaPlayer = new MediaPlayer();
+        try {
+            mediaPlayer.setDataSource(fileToPlay.getAbsolutePath());
+            mediaPlayer.prepare();
+            mediaPlayer.start();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        //Play the audio
+        isPlaying = true;
+        mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(MediaPlayer mp) {
+                stopAudio();
+            }
+        });
+
+        playerSeekbar.setMax(mediaPlayer.getDuration());
+
+        seekbarHandler = new Handler();
+        updateRunnable();
+        seekbarHandler.postDelayed(updateSeekbar, 0);
+
+    }
+
+    private void updateRunnable() {
+        updateSeekbar = new Runnable() {
+            @Override
+            public void run() {
+                playerSeekbar.setProgress(mediaPlayer.getCurrentPosition());
+                seekbarHandler.postDelayed(this, 500);
+            }
+        };
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (isPlaying) {
+            stopAudio();
+        }
+    }
+
+    @SuppressLint("WrongConstant")
+    private void initComponentAudio() {
+        String path = Objects.requireNonNull(getExternalFilesDir("/")).getAbsolutePath();
+        File directory = new File(path);
+        allFiles = directory.listFiles();
+        audioListAdapter = new AudioListAdapter(allFiles, this);
+        audioList.setAdapter(audioListAdapter);
+        adapterCheck.setOnItemClickListener((view, social, i) -> Toast.makeText(Notes.this, social.getTitle(), Toast.LENGTH_SHORT).show());
+        adapterCheck.setOnClickListener(new OnClickListener<Check>() {
+            @Override
+            public void onItemClick(android.view.View view, Check inbox, int i) {
+                adapterCheck.deleteItem(i);
+                recyclerViewCheck.scrollToPosition(mAdapter.getItemCount());
+            }
+
+            @Override
+            public void onItemLongClick(android.view.View view, Check inbox, int i) {
+
+            }
+        });
+    }
 
     @SuppressLint("WrongConstant")
     private void initComponentCheck() {
@@ -146,6 +263,7 @@ public class Notes extends AppCompatActivity implements View {
         }
         initRecyclerView();
         initComponentCheck();
+        initComponentAudio();
         progressDialog = new ProgressDialog(this);
         progressDialog.setMessage(getString(R.string.please_wait));
     }
@@ -157,6 +275,9 @@ public class Notes extends AppCompatActivity implements View {
     }
 
     private void initRecyclerView() {
+        audioList = findViewById(R.id.audio_list_view);
+        audioList.setLayoutManager(new LinearLayoutManager(this));
+        audioList.setHasFixedSize(true);
         recyclerViewCheck = findViewById(R.id.recyclerView_check);
         recyclerViewCheck.setLayoutManager(new LinearLayoutManager(this));
         recyclerViewCheck.setHasFixedSize(true);
@@ -450,6 +571,10 @@ public class Notes extends AppCompatActivity implements View {
                 }
             });*/
         }
+        if (menuItem.getItemId() == R.id.action_audio_record) {
+            startActivity(new Intent(Notes.this, RecordFragment.class));
+            finish();
+        }
         return super.onOptionsItemSelected(menuItem);
     }
 
@@ -657,4 +782,5 @@ public class Notes extends AppCompatActivity implements View {
 
         }
     }
+
 }

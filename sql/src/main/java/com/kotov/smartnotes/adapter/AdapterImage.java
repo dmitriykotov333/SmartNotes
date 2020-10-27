@@ -1,6 +1,11 @@
 package com.kotov.smartnotes.adapter;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
+import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -9,12 +14,18 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.request.target.Target;
 import com.kotov.smartnotes.R;
 import com.kotov.smartnotes.adapter.OnClickListener;
+import com.kotov.smartnotes.database.Action;
+import com.kotov.smartnotes.database.ImageAction;
 import com.kotov.smartnotes.model.Images;
+import com.squareup.picasso.Picasso;
 
+import java.io.ByteArrayInputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -25,7 +36,7 @@ public class AdapterImage extends RecyclerView.Adapter<AdapterImage.ViewHolder> 
     private List<Images> items;
     private OnClickListener<Images> onClickListener;
     private SparseBooleanArray selected_items;
-
+    private ImageAction imageAction;
 
     public void setOnClickListener(OnClickListener<Images> onClickListener) {
         this.onClickListener = onClickListener;
@@ -139,6 +150,8 @@ public class AdapterImage extends RecyclerView.Adapter<AdapterImage.ViewHolder> 
        /* Realm realm = Realm.getDefaultInstance();
         final RealmResults<Item> results = realm.where(Item.class).equalTo("image", item.getImage()).findAll();
         realm.executeTransaction(realm1 -> results.deleteAllFromRealm());*/
+        imageAction = new ImageAction(context);
+        imageAction.deleteImage(item.getUpdate_date());
         notifyItemRemoved(position);
     }
 

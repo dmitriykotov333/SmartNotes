@@ -56,7 +56,7 @@ public class Utils {
     public static Intent shareNote(String title, String description, String date, List<Images> rst, Context context) {
         ArrayList<Uri> imageUri = new ArrayList<>();
         for (int i = 0; i < rst.size(); i++) {
-            Bitmap bitmap = BitmapFactory.decodeByteArray(rst.get(i).getImage().getBytes(), 0, rst.get(i).getImage().length());
+            Bitmap bitmap = BitmapFactory.decodeByteArray(rst.get(i).getImage(), 0, rst.get(i).getImage().length);
             bitmap.compress(Bitmap.CompressFormat.JPEG, 100, new ByteArrayOutputStream());
             String path = MediaStore.Images.Media.insertImage(context.getContentResolver(), bitmap, "Title", null);
             imageUri.add(Uri.parse(path));

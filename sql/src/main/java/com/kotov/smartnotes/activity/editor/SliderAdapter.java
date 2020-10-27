@@ -16,6 +16,8 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.kotov.smartnotes.R;
 import com.kotov.smartnotes.adapter.OnClickListener;
+import com.kotov.smartnotes.database.Action;
+import com.kotov.smartnotes.database.ImageAction;
 import com.kotov.smartnotes.model.Images;
 
 import java.util.ArrayList;
@@ -28,7 +30,7 @@ public class SliderAdapter extends RecyclerView.Adapter<SliderAdapter.ViewHolder
     private Context context;
     private List<Images> items;
     private OnClickListener<Images> onClickListener;
-
+    private ImageAction imageAction;
 
     public void setOnClickListener(OnClickListener<Images> onClickListener) {
         this.onClickListener = onClickListener;
@@ -43,9 +45,9 @@ public class SliderAdapter extends RecyclerView.Adapter<SliderAdapter.ViewHolder
         }
     }
 
-    public SliderAdapter(Context context, List<Images> list) {
+    public SliderAdapter(Context context, List<Images> items) {
         this.context = context;
-        this.items = list;
+        this.items = items;
     }
 
     @NonNull
@@ -72,9 +74,13 @@ public class SliderAdapter extends RecyclerView.Adapter<SliderAdapter.ViewHolder
         removeItem(items.get(i));
     }
 
+    public List<Images> getImages() {
+        return items;
+    }
     private void removeItem(Images item) {
         int position = items.indexOf(item);
-
+        imageAction = new ImageAction(context);
+        imageAction.deleteImage(item.getUpdate_date());
         /*Realm realm = Realm.getDefaultInstance();
 
         final RealmResults<Item> results = realm.where(Item.class).equalTo("image", item.getImage()).findAll();

@@ -7,21 +7,24 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.kotov.smartnotes.R;
+import com.kotov.smartnotes.model.Audio;
 
 import java.io.File;
+import java.util.List;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 public class AudioListAdapter extends RecyclerView.Adapter<AudioListAdapter.AudioViewHolder> {
 
-    private File[] allFiles;
+    //private File[] allFiles;
+    private List<Audio> audioList;
     private TimeAgo timeAgo;
 
     private onItemListClick onItemListClick;
 
-    public AudioListAdapter(File[] allFiles, onItemListClick onItemListClick) {
-        this.allFiles = allFiles;
+    public AudioListAdapter(List<Audio> audioList, onItemListClick onItemListClick) {
+        this.audioList = audioList;
         this.onItemListClick = onItemListClick;
     }
 
@@ -35,13 +38,14 @@ public class AudioListAdapter extends RecyclerView.Adapter<AudioListAdapter.Audi
 
     @Override
     public void onBindViewHolder(@NonNull AudioViewHolder holder, int position) {
-        holder.list_title.setText(allFiles[position].getName());
-        holder.list_date.setText(timeAgo.getTimeAgo(allFiles[position].lastModified()));
+        File allFiles = new File(audioList.get(position).getDirectory());
+        holder.list_title.setText(allFiles.getName());
+        holder.list_date.setText(timeAgo.getTimeAgo(allFiles.lastModified()));
     }
 
     @Override
     public int getItemCount() {
-        return allFiles.length;
+        return audioList.size();
     }
 
     public class AudioViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
@@ -63,12 +67,12 @@ public class AudioListAdapter extends RecyclerView.Adapter<AudioListAdapter.Audi
 
         @Override
         public void onClick(View v) {
-            onItemListClick.onClickListener(allFiles[getAdapterPosition()], getAdapterPosition());
+            onItemListClick.onClickListener(audioList.get(getAdapterPosition()), getAdapterPosition());
         }
     }
 
     public interface onItemListClick {
-        void onClickListener(File file, int position);
+        void onClickListener(Audio file, int position);
     }
 
 }

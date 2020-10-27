@@ -41,13 +41,23 @@ public class DragItemTouchHelper extends ItemTouchHelper.Callback {
         return makeMovementFlags(3, 48);
     }
 
-    public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder viewHolder2) {
-        if (viewHolder.getItemViewType() != viewHolder2.getItemViewType()) {
-            return false;
+    //public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder viewHolder2) {
+        //if (viewHolder.getItemViewType() != viewHolder2.getItemViewType()) {
+          //  return false;
+        //}
+       // this.mAdapter.onItemMove(viewHolder.getAdapterPosition(), viewHolder2.getAdapterPosition());
+      //  return true;
+    //}
+    @Override
+    public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder,
+                          RecyclerView.ViewHolder target) {
+        if (viewHolder.getItemViewType() != target.getItemViewType()) {
+          return false;
         }
-        this.mAdapter.onItemMove(viewHolder.getAdapterPosition(), viewHolder2.getAdapterPosition());
+        mAdapter.onItemMove(viewHolder.getAdapterPosition(), target.getAdapterPosition());
         return true;
     }
+
 
     public void onChildDraw(Canvas canvas, RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, float f, float f2, int i, boolean z) {
         if (i == 1) {

@@ -23,28 +23,18 @@
     <autoscroll-to-editor value="false" />
     <autoscroll-from-editor value="true" />
     <show-object-properties value="true" />
-    <loaded-nodes>
-      <connection connection-id="7acd3e02-9883-40da-8ac6-ed3443094cfd">
-        <schema name="information_schema" object-types="table, view, function" />
-        <schema name="pg_catalog" object-types="table, view, function" />
-        <schema name="public" object-types="column, table, view, function" />
-      </connection>
-    </loaded-nodes>
+    <loaded-nodes />
   </component>
   <component name="DBNavigator.Project.DatabaseConsoleManager">
-    <connection id="e7784fe4-a1c0-46c1-9bee-441a08045dab">
-      <console name="Connection" type="STANDARD" schema="information_schema" session="Main" />
-    </connection>
-    <connection id="7acd3e02-9883-40da-8ac6-ed3443094cfd">
-      <console name="smart_notes" type="STANDARD" schema="information_schema" session="Main" />
+    <connection id="6bfb8b36-3731-4c84-b8e2-0ef50ad85ee3">
+      <console name="Connection" type="STANDARD" schema="" session="Main" />
     </connection>
   </component>
   <component name="DBNavigator.Project.DatabaseFileManager">
     <open-files />
   </component>
   <component name="DBNavigator.Project.DatabaseSessionManager">
-    <connection id="e7784fe4-a1c0-46c1-9bee-441a08045dab" />
-    <connection id="7acd3e02-9883-40da-8ac6-ed3443094cfd" />
+    <connection id="6bfb8b36-3731-4c84-b8e2-0ef50ad85ee3" />
   </component>
   <component name="DBNavigator.Project.EditorStateManager">
     <last-used-providers />
@@ -74,115 +64,29 @@
   </component>
   <component name="DBNavigator.Project.Settings">
     <connections>
-      <connection id="e7784fe4-a1c0-46c1-9bee-441a08045dab" active="true">
+      <connection id="6bfb8b36-3731-4c84-b8e2-0ef50ad85ee3" active="true">
         <database>
           <name value="Connection" />
           <description value="" />
-          <database-type value="POSTGRES" />
+          <database-type value="SQLITE" />
           <config-type value="BASIC" />
-          <database-version value="12.3" />
+          <database-version value="9999.0" />
           <driver-source value="BUILTIN" />
           <driver-library value="" />
           <driver value="" />
-          <url-type value="DATABASE" />
+          <url-type value="FILE" />
           <host value="localhost" />
-          <port value="5432" />
-          <database value="postgres" />
-          <type value="USER_PASSWORD" />
-          <user value="postgres" />
-          <deprecated-pwd value="ODg4ODg4ODg=" />
+          <port value="1234" />
+          <database value="database" />
+          <files>
+            <file path="smart_notes.db" schema="main" />
+          </files>
+          <type value="NONE" />
+          <user value="" />
+          <deprecated-pwd value="" />
         </database>
         <properties>
           <auto-commit value="false" />
-        </properties>
-        <ssh-settings>
-          <active value="false" />
-          <proxy-host value="" />
-          <proxy-port value="22" />
-          <proxy-user value="" />
-          <deprecated-proxy-pwd value="" />
-          <auth-type value="PASSWORD" />
-          <key-file value="" />
-          <key-passphrase value="" />
-        </ssh-settings>
-        <ssl-settings>
-          <active value="false" />
-          <certificate-authority-file value="" />
-          <client-certificate-file value="" />
-          <client-key-file value="" />
-        </ssl-settings>
-        <details>
-          <charset value="UTF-8" />
-          <session-management value="true" />
-          <ddl-file-binding value="true" />
-          <database-logging value="false" />
-          <connect-automatically value="true" />
-          <restore-workspace value="true" />
-          <restore-workspace-deep value="true" />
-          <environment-type value="default" />
-          <idle-time-to-disconnect value="30" />
-          <idle-time-to-disconnect-pool value="5" />
-          <credential-expiry-time value="10" />
-          <max-connection-pool-size value="7" />
-          <alternative-statement-delimiter value="" />
-        </details>
-        <object-filters hide-empty-schemas="false" hide-pseudo-columns="false">
-          <object-type-filter use-master-settings="true">
-            <object-type name="SCHEMA" enabled="true" />
-            <object-type name="USER" enabled="true" />
-            <object-type name="ROLE" enabled="true" />
-            <object-type name="PRIVILEGE" enabled="true" />
-            <object-type name="CHARSET" enabled="true" />
-            <object-type name="TABLE" enabled="true" />
-            <object-type name="VIEW" enabled="true" />
-            <object-type name="MATERIALIZED_VIEW" enabled="true" />
-            <object-type name="NESTED_TABLE" enabled="true" />
-            <object-type name="COLUMN" enabled="true" />
-            <object-type name="INDEX" enabled="true" />
-            <object-type name="CONSTRAINT" enabled="true" />
-            <object-type name="DATASET_TRIGGER" enabled="true" />
-            <object-type name="DATABASE_TRIGGER" enabled="true" />
-            <object-type name="SYNONYM" enabled="true" />
-            <object-type name="SEQUENCE" enabled="true" />
-            <object-type name="PROCEDURE" enabled="true" />
-            <object-type name="FUNCTION" enabled="true" />
-            <object-type name="PACKAGE" enabled="true" />
-            <object-type name="TYPE" enabled="true" />
-            <object-type name="TYPE_ATTRIBUTE" enabled="true" />
-            <object-type name="ARGUMENT" enabled="true" />
-            <object-type name="DIMENSION" enabled="true" />
-            <object-type name="CLUSTER" enabled="true" />
-            <object-type name="DBLINK" enabled="true" />
-          </object-type-filter>
-          <object-name-filters />
-        </object-filters>
-      </connection>
-      <connection id="7acd3e02-9883-40da-8ac6-ed3443094cfd" active="true">
-        <database>
-          <name value="smartnotes" />
-          <description value="" />
-          <database-type value="POSTGRES" />
-          <config-type value="BASIC" />
-          <database-version value="12.3" />
-          <driver-source value="EXTERNAL" />
-          <driver-library value="D:\Downloads\postgresql-42.2.17.jre6.jar" />
-          <driver value="org.postgresql.Driver" />
-          <url-type value="DATABASE" />
-          <host value="127.0.0.1" />
-          <port value="5432" />
-          <database value="smart_notes" />
-          <type value="USER_PASSWORD" />
-          <user value="postgres" />
-          <deprecated-pwd value="ODg4ODg4ODg=" />
-        </database>
-        <properties>
-          <auto-commit value="true" />
-          <properties>
-            <property key="password" value="88888888" />
-            <property key="driver-class-name" value="org.postgresql.Driver" />
-            <property key="url" value="jdbc:postgresql://127.0.0.1:5432/smart_notes" />
-            <property key="username" value="postgres" />
-          </properties>
         </properties>
         <ssh-settings>
           <active value="false" />

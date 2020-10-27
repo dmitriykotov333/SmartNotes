@@ -26,7 +26,9 @@ import com.kotov.smartnotes.utils.drawingview.DrawingViewActivity;
 import com.kotov.smartnotes.utils.drawingview.DrawingViewImage;
 import com.kotov.smartnotes.utils.drawingview.DrawingViewImageActivity;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
@@ -49,32 +51,40 @@ public class DetailActivity extends AppCompatActivity implements View {
     private Presenter presenter;
     private ViewPager2 mViewPager;
     private String id;
-   private List<Images> list;
     private int index;
+    private List<Images> list;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detail);
         init();
-        Intent intent = getIntent();
-        if (intent != null) {
-            id = intent.getStringExtra("id");
-            if (id != null) {
-             //   list = presenter.get(id).getImage();
-            } else {
-             //   list = (List<Item>) intent.getExtras().getSerializable("list");
-            }
-            viewPager(list, intent);
-        }
+        viewPager();
     }
 
-    private void viewPager(List<Images> list, Intent intent) {
-      //  mAdapter = new SliderAdapter(getApplicationContext(), list);
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+    }
+
+    private List<Images> viewPager() {
+        Intent intent = getIntent();
+        if (intent != null) {
+            id = intent.getStringExtra("update_date");
+            if (id != null) {
+                list = presenter.getAllImages(id);
+                list.addAll(presenter.getAllImagesISNull());
+            } else {
+                list = presenter.getAllImagesISNull();
+            }
+        }
+        mAdapter = new SliderAdapter(getApplicationContext(), list);
         mViewPager.setAdapter(mAdapter);
         mViewPager.setCurrentItem(intent.getIntExtra("position", 0));
         index = mViewPager.getCurrentItem();
         Objects.requireNonNull(getSupportActionBar()).setTitle(getStrings(mViewPager.getCurrentItem() + 1, list.size()));
+        List<Images> finalList = list;
         mViewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
@@ -86,7 +96,7 @@ public class DetailActivity extends AppCompatActivity implements View {
             public void onPageSelected(int position) {
                 super.onPageSelected(position);
                 index = position;
-                Objects.requireNonNull(getSupportActionBar()).setTitle(getStrings(position + 1, list.size()));
+                Objects.requireNonNull(getSupportActionBar()).setTitle(getStrings(position + 1, finalList.size()));
             }
 
             @Override
@@ -95,9 +105,11 @@ public class DetailActivity extends AppCompatActivity implements View {
 
             }
         });
+        return list;
     }
+
     private void init() {
-       // list = new ArrayList<>();
+        list = new ArrayList<>();
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
@@ -129,13 +141,16 @@ public class DetailActivity extends AppCompatActivity implements View {
     }
 
     Uri pickedImage;
-    //private List<Item> rst = new ArrayList<>();
+
     @SuppressLint("SetTextI18n")
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (data != null) {
             if (requestCode == 111) {
+                String time = getDate();
+                presenter.deleteImage(list.get(index).getCreate_date());
+                presenter.saveOneImage(new Images(data.getByteArrayExtra("image"), time, time), id);
                 /*Realm.getDefaultInstance().executeTransaction(realm -> {
                     list.remove(index);
                     list.add(new Item(data.getByteArrayExtra("image")));
@@ -147,26 +162,33 @@ public class DetailActivity extends AppCompatActivity implements View {
             }
         }
     }
+
+    private String getDate() {
+        @SuppressLint("SimpleDateFormat") SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        Date date = new Date();
+        return dateFormat.format(date);
+    }
+
+
     @SuppressLint("WrongConstant")
     public boolean onOptionsItemSelected(MenuItem menuItem) {
         if (menuItem.getItemId() == R.id.action_redactor) {
             Intent intent = new Intent(DetailActivity.this, DrawingViewImageActivity.class);
-            intent.putExtra("id", id);
+            intent.putExtra("create_date", list.get(index).getCreate_date());
             intent.putExtra("position", index);
             startActivityForResult(intent, 111);
 
-           // Intent intent = new Intent(DetailActivity.this, DrawingViewImageActivity.class);
+            // Intent intent = new Intent(DetailActivity.this, DrawingViewImageActivity.class);
             //intent.putExtra("id", id);
             //intent.putExtra("position", index);
             //startActivity(intent);
         }
         if (menuItem.getItemId() == R.id.action_detail_delete) {
             mAdapter.removeData(index);
-            mAdapter.notifyDataSetChanged();
-            if (list.size() == 0) {
+            if (viewPager().size() == 0) {
                 onSupportNavigateUp();
             } else {
-                Objects.requireNonNull(getSupportActionBar()).setTitle(getStrings(mViewPager.getCurrentItem() + 1, list.size()));
+                viewPager();
             }
         }
         return super.onOptionsItemSelected(menuItem);

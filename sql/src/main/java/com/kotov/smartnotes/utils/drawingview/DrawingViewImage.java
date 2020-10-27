@@ -90,10 +90,10 @@ public class DrawingViewImage extends View {
         mCanvas.drawColor(Color.TRANSPARENT);
     }
     @SuppressLint("WrongThread")
-    public byte[] getImageUri(Context inContext) {
+    public byte[] getImageUri() {
 
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        mBitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
+        mBitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
         byte[] byteArray = stream.toByteArray();
         mBitmap.recycle();
         return byteArray;

@@ -166,7 +166,7 @@ public class AdapterList extends RecyclerView.Adapter<AdapterList.ViewHolder> {
     private void removeItem(Note item) {
         int position = items.indexOf(item);
         action = new Action(context);
-        action.remove(item.getCreate_date());
+        action.remove(item.getUpdate_date());
         /*Realm realm = Realm.getDefaultInstance();
 
         final RealmResults<Inbox> results = realm.where(Inbox.class).equalTo("create_date", item.getCreate_date()).findAll();

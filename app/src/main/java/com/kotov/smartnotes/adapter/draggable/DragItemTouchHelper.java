@@ -1,6 +1,8 @@
 package com.kotov.smartnotes.adapter.draggable;
 
 import android.graphics.Canvas;
+import android.widget.Toast;
+
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.RecyclerView;

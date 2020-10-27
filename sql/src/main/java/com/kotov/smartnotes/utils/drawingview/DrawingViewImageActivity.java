@@ -45,7 +45,7 @@ public class DrawingViewImageActivity extends AppCompatActivity implements View.
         super.onCreate(savedInstanceState);
         setContentView(R.layout.drawing_view_image_activity);
         intent = getIntent();
-        id = intent.getStringExtra("id");
+        id = intent.getStringExtra("create_date");
         position = intent.getIntExtra("position", -1);
         presenter = new Presenter(this, getApplicationContext());
         initViews();
@@ -99,10 +99,10 @@ public class DrawingViewImageActivity extends AppCompatActivity implements View.
     }
 
     public void loadImage() {
-            //Bitmap bitmap = BitmapFactory.decodeByteArray(Objects.requireNonNull(presenter.get(id).getImage().get(position)).getImage(),
-             //       0, Objects.requireNonNull(presenter.get(id).getImage().get(position)).getImage().length);
+            Bitmap bitmap = BitmapFactory.decodeByteArray(Objects.requireNonNull(presenter.getImg(id)).getImage(),
+                    0, Objects.requireNonNull(presenter.getImg(id)).getImage().length);
 
-        //    mDrawingView.loadImage(bitmap);
+            mDrawingView.loadImage(bitmap);
 
     }
 
@@ -117,7 +117,7 @@ public class DrawingViewImageActivity extends AppCompatActivity implements View.
           //  Toast.makeText(this, "Save Success", Toast.LENGTH_SHORT).show();
         //}
         Intent intent = new Intent();
-        intent.putExtra("image", mDrawingView.getImageUri(getApplicationContext()));
+        intent.putExtra("image", mDrawingView.getImageUri());
         setResult(RESULT_OK, intent);
         finish();
     }

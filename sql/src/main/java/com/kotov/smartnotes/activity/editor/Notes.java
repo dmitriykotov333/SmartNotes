@@ -8,6 +8,9 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
+import android.media.Image;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
@@ -29,30 +32,43 @@ import android.widget.Toast;
 
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.kotov.smartnotes.R;
+import com.kotov.smartnotes.activity.main.MainActivity;
 import com.kotov.smartnotes.adapter.AdapterImage;
 import com.kotov.smartnotes.adapter.draggable.AdapterCheck;
 import com.kotov.smartnotes.adapter.draggable.DragItemTouchHelper;
 import com.kotov.smartnotes.audiorecord.AudioListAdapter;
 import com.kotov.smartnotes.audiorecord.RecordFragment;
+import com.kotov.smartnotes.model.Audio;
 import com.kotov.smartnotes.model.Check;
 import com.kotov.smartnotes.adapter.OnClickListener;
 import com.kotov.smartnotes.model.Images;
+import com.kotov.smartnotes.model.Note;
 import com.kotov.smartnotes.utils.Utils;
 import com.kotov.smartnotes.utils.alarm.AlarmReceiver;
 import com.kotov.smartnotes.utils.alarm.AlarmUtils;
 import com.kotov.smartnotes.utils.alarm.NotificationUtils;
 import com.kotov.smartnotes.utils.drawingview.DrawingViewActivity;
 
+import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.Serializable;
+import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
@@ -74,7 +90,7 @@ public class Notes extends AppCompatActivity implements View, AudioListAdapter.o
 
     private com.google.android.material.textfield.TextInputEditText title;
     private com.google.android.material.textfield.TextInputEditText description;
-    private String id, keys;
+    private String id;
     private android.view.View view_priority;
     private TextView date;
     private AdapterImage mAdapter;
@@ -83,19 +99,18 @@ public class Notes extends AppCompatActivity implements View, AudioListAdapter.o
     private ProgressDialog progressDialog;
     private Presenter presenter;
     private Uri pickedImage;
-   // private List<Item> rst = new ArrayList<>();
+    private List<Images> listImages = new ArrayList<>();
     private List<Check> checkList = new ArrayList<>();
+    private List<Audio> audioArrayList = new ArrayList<>();
     private String key;
     private Integer single_choice_selected;
     private String password = null;
     private Integer fixed = -1;
-   // private List<Item> realmList = new ArrayList<>();
-   // private List<Check> checkRealmList = new ArrayList<>();
     private RecyclerView recyclerView;
     private TextView textView;
     private int code;
-    private boolean getSelectedItemCount = false;
     private String category;
+    private boolean getSelectedItemCount;
     /**
      * CheckBox
      */
@@ -106,9 +121,8 @@ public class Notes extends AppCompatActivity implements View, AudioListAdapter.o
      * AudioRecorder
      */
     private RecyclerView audioList;
-    private File[] allFiles;
+   // private File[] allFiles;
     private AudioListAdapter audioListAdapter;
-    private File fileToPlay = null;
     private boolean isPlaying = false;
     private SeekBar playerSeekbar;
     private Handler seekbarHandler;
@@ -116,13 +130,13 @@ public class Notes extends AppCompatActivity implements View, AudioListAdapter.o
     private MediaPlayer mediaPlayer = null;
 
     @Override
-    public void onClickListener(File file, int position) {
-        fileToPlay = file;
+    public void onClickListener(Audio file, int position) {
+        File file1 = new File(file.getDirectory());//fileToPlay = file;
         if (isPlaying) {
             stopAudio();
-            playAudio(fileToPlay);
+            playAudio(file1);
         } else {
-            playAudio(fileToPlay);
+            playAudio(file1);
         }
     }
 
@@ -166,7 +180,7 @@ public class Notes extends AppCompatActivity implements View, AudioListAdapter.o
             }
         });
 
-        playerSeekbar.setMax(mediaPlayer.getDuration());
+//        playerSeekbar.setMax(mediaPlayer.getDuration());
 
         seekbarHandler = new Handler();
         updateRunnable();
@@ -178,7 +192,7 @@ public class Notes extends AppCompatActivity implements View, AudioListAdapter.o
         updateSeekbar = new Runnable() {
             @Override
             public void run() {
-                playerSeekbar.setProgress(mediaPlayer.getCurrentPosition());
+//                playerSeekbar.setProgress(mediaPlayer.getCurrentPosition());
                 seekbarHandler.postDelayed(this, 500);
             }
         };
@@ -194,16 +208,16 @@ public class Notes extends AppCompatActivity implements View, AudioListAdapter.o
 
     @SuppressLint("WrongConstant")
     private void initComponentAudio() {
-        String path = Objects.requireNonNull(getExternalFilesDir("/")).getAbsolutePath();
-        File directory = new File(path);
-        allFiles = directory.listFiles();
-        audioListAdapter = new AudioListAdapter(allFiles, this);
+        //String path = Objects.requireNonNull(getExternalFilesDir("/")).getAbsolutePath();
+        //File directory = new File(path);
+        //allFiles = directory.listFiles();
+        audioListAdapter = new AudioListAdapter(audioArrayList, this);
         audioList.setAdapter(audioListAdapter);
         adapterCheck.setOnItemClickListener((view, social, i) -> Toast.makeText(Notes.this, social.getTitle(), Toast.LENGTH_SHORT).show());
         adapterCheck.setOnClickListener(new OnClickListener<Check>() {
             @Override
             public void onItemClick(android.view.View view, Check inbox, int i) {
-                adapterCheck.deleteItem(i);
+               // adapterCheck.deleteItem(inbox, i);
                 recyclerViewCheck.scrollToPosition(mAdapter.getItemCount());
             }
 
@@ -216,14 +230,17 @@ public class Notes extends AppCompatActivity implements View, AudioListAdapter.o
 
     @SuppressLint("WrongConstant")
     private void initComponentCheck() {
-        adapterCheck = new AdapterCheck(this, checkList);
+        adapterCheck = new AdapterCheck(this, checkList, id);
         recyclerViewCheck.setAdapter(adapterCheck);
         adapterCheck.setOnItemClickListener((view, social, i) -> Toast.makeText(Notes.this, social.getTitle(), Toast.LENGTH_SHORT).show());
         adapterCheck.setOnClickListener(new OnClickListener<Check>() {
             @Override
             public void onItemClick(android.view.View view, Check inbox, int i) {
                 adapterCheck.deleteItem(i);
-                recyclerViewCheck.scrollToPosition(mAdapter.getItemCount());
+                recyclerViewCheck.scrollToPosition(adapterCheck.getItemCount());
+                if (adapterCheck.getItemCount() == 0) {
+                    textView.setVisibility(GONE);
+                }
             }
 
             @Override
@@ -253,8 +270,10 @@ public class Notes extends AppCompatActivity implements View, AudioListAdapter.o
             title.setText(presenter.get(id).getTitle());
             password = presenter.get(id).getPassword();
             fixed = presenter.get(id).isFixNote();
-            //rst = presenter.get(id).getImage();
-            //checkList = presenter.get(id).getChecks();
+            listImages = presenter.getAllImages(id);
+            checkList = presenter.getAllChecks(id);
+            audioArrayList = presenter.getAllAudios(id);
+            Toast.makeText(this, "" + audioArrayList.size(), Toast.LENGTH_SHORT).show();
             category = presenter.getCategory(presenter.get(id).getUpdate_date()).getName();
             description.setText(presenter.get(id).getDescription());
             single_choice_selected = presenter.get(id).getPriority();
@@ -264,8 +283,6 @@ public class Notes extends AppCompatActivity implements View, AudioListAdapter.o
             category = "All Notes";
         }
         initRecyclerView();
-       // initComponentCheck();
-       // initComponentAudio();
         progressDialog = new ProgressDialog(this);
         progressDialog.setMessage(getString(R.string.please_wait));
     }
@@ -289,16 +306,35 @@ public class Notes extends AppCompatActivity implements View, AudioListAdapter.o
         recyclerView.setHasFixedSize(true);
     }
 
+
     @Override
     protected void onResume() {
         super.onResume();
-       // initComponent(pickedImage);
+        listImages.clear();
+        listImages = presenter.getAllImages(id);
+        listImages.addAll(presenter.getAllImagesISNull());
+        initComponent(pickedImage);
+        pickedImage = null;
+        initComponentCheck();
+        audioArrayList.clear();
+        audioArrayList = presenter.getAllAudios(id);
+        audioArrayList.addAll(presenter.getAllAudiosISNull());
+        initComponentAudio();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
         pickedImage = null;
+    }
+
+    @Override
+    public void onBackPressed() {
+        presenter.imagesIsNullNotesId();
+        presenter.checksIsNullNotesId();
+        presenter.audiosIsNullNotesId();
+        startActivity(new Intent(Notes.this, MainActivity.class).putExtra("key", key));
+        finish();
     }
 
     @Override
@@ -312,14 +348,14 @@ public class Notes extends AppCompatActivity implements View, AudioListAdapter.o
             boolean check_close_notification = intent.getBooleanExtra("close", false);
             int close_id_notification = intent.getIntExtra("close_code", -1);
             id = intent.getStringExtra("id");
-            keys = intent.getStringExtra("key");
-            if (keys == null) {
-                keys = "All Notes";
-            }
+            key = intent.getStringExtra("key");
+            //if (keys == null) {
+            //    keys = "All Notes";
+            //}
             if (check_close_notification) {
                 AlarmUtils.cancelAlarm(getApplicationContext(), new Intent(getApplicationContext(), AlarmReceiver.class).putExtra("close_id", close_id_notification), close_id_notification);
             }
-            key = keys;
+            //key = keys;
         }
     }
 
@@ -341,30 +377,43 @@ public class Notes extends AppCompatActivity implements View, AudioListAdapter.o
         date = findViewById(R.id.date);
         textView = findViewById(R.id.add_check);
         textView.setOnClickListener(v -> {
-            adapterCheck.addItem(new Check("", -1), adapterCheck.getItemCount());
-            recyclerViewCheck.scrollToPosition(mAdapter.getItemCount() - 1);
+            adapterCheck.addItem(new Check("", -1, getDate(), getDate()), adapterCheck.getItemCount(), id);
+            recyclerViewCheck.scrollToPosition(adapterCheck.getItemCount() - 1);
         });
+    }
+
+
+    public byte[] getBytes(InputStream inputStream) {
+        ByteArrayOutputStream rst = new ByteArrayOutputStream();
+        try (ByteArrayOutputStream byteBuffer = new ByteArrayOutputStream()) {
+            byte[] buffer = new byte[1024];
+
+            int len = 0;
+            while ((len = inputStream.read(buffer)) != -1) {
+                byteBuffer.write(buffer, 0, len);
+            }
+            rst = byteBuffer;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return rst.toByteArray();
     }
 
     @SuppressLint("WrongConstant")
     private void initComponent(Uri pickedImage) {
         if (pickedImage != null) {
-            try {
-                Bitmap bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), pickedImage);
-                ByteArrayOutputStream stream = new ByteArrayOutputStream();
-                bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
-                byte[] byteArray = stream.toByteArray();
-                /*Realm.getDefaultInstance().executeTransaction(realm -> {
-                    rst.add(new Item(byteArray));
-                    realm.insertOrUpdate(rst);
-                });*/
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
+            String time = getDate();
+                try (InputStream stream = getContentResolver().openInputStream(pickedImage)) {
+                    if (stream != null) {
+                        byte[] inputData = getBytes(stream);
+                        listImages.add(new Images(inputData, time, time));
+                        runOnUiThread(() -> presenter.saveImages(listImages));
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
         }
-        //ArrayList<Item> list = new ArrayList<>(rst);
-        //mAdapter = new AdapterImage(this, rst);
+        mAdapter = new AdapterImage(this, listImages);
         if (mAdapter.getItemCount() == 0) {
             recyclerView.setVisibility(GONE);
         } else {
@@ -375,18 +424,17 @@ public class Notes extends AppCompatActivity implements View, AudioListAdapter.o
             public void onItemClick(android.view.View view, Images inbox, int i) {
                 if (mAdapter.getSelectedItemCount() > 0) {
                     enableActionMode(i);
-                }
-                //Item item = mAdapter.getItem(i);
-                if (!getSelectedItemCount) {
+                } else {
+                    Toast.makeText(Notes.this, "click", Toast.LENGTH_SHORT).show();
                     Intent intent = new Intent(Notes.this, DetailActivity.class);
 
-                    if (id == null) {
-                        Bundle bundle = new Bundle();
-                       // bundle.putSerializable("list", list);
-                        intent.putExtras(bundle);
-                    } else {
-                        intent.putExtra("id", id);
-                    }
+                    //if (id == null) {
+                    //    Bundle bundle = new Bundle();
+                    //    bundle.putSerializable("list", (Serializable) listImages);
+                    //    intent.putExtras(bundle);
+                    //  } else {
+                    intent.putExtra("update_date", id);
+                    //}
                     intent.putExtra("position", i);
                     startActivity(intent);
                 }
@@ -430,6 +478,7 @@ public class Notes extends AppCompatActivity implements View, AudioListAdapter.o
                     mAdapter.removeData(selectedItems.get(size));
                 }
                 mAdapter.notifyDataSetChanged();
+                onResume();
             }
         };
     }
@@ -446,18 +495,20 @@ public class Notes extends AppCompatActivity implements View, AudioListAdapter.o
             //realmList.addAll(rst);
             //checkRealmList.addAll(checkList);
             if (id == null) {
-                presenter.saveNote(key, Objects.requireNonNull(title.getText()).toString(), Objects.requireNonNull(description.getText()).toString(), time, time, single_choice_selected, password, fixed);
+                presenter.saveNote(key, Objects.requireNonNull(title.getText()).toString(), Objects.requireNonNull(description.getText()).toString(), time, time, single_choice_selected, password, fixed, listImages, checkList, audioArrayList);//checkList);
             } else {
                 String date = presenter.get(id).getUpdate_date();
                 String dateCreate = presenter.get(id).getCreate_date();
                 if (!key.equals(category)) {
                     presenter.deleteNote(/*key,*/ date);
-                    presenter.saveNote(key, Objects.requireNonNull(title.getText()).toString(), Objects.requireNonNull(description.getText()).toString(), dateCreate, time, single_choice_selected, password, fixed);
+                    presenter.saveNote(key, Objects.requireNonNull(title.getText()).toString(), Objects.requireNonNull(description.getText()).toString(), dateCreate, time, single_choice_selected, password, fixed, listImages, checkList, audioArrayList);
+                    Toast.makeText(this, category + " " + key, Toast.LENGTH_SHORT).show();
                 } else {
-                    presenter.replaceNote(key, id, Objects.requireNonNull(title.getText()).toString(), Objects.requireNonNull(description.getText()).toString(), time, single_choice_selected, password, fixed);
-                    Toast.makeText(this, "" + key, Toast.LENGTH_SHORT).show();
+                    presenter.replaceNote(category, id, Objects.requireNonNull(title.getText()).toString(), Objects.requireNonNull(description.getText()).toString(), time, single_choice_selected, password, fixed, listImages, checkList, audioArrayList);
+                    Toast.makeText(this, category + " " + key, Toast.LENGTH_SHORT).show();
                 }
             }
+            startActivity(new Intent(Notes.this, MainActivity.class).putExtra("key", key));
             finish();
         }
         if (menuItem.getItemId() == R.id.action_priority) {
@@ -472,10 +523,11 @@ public class Notes extends AppCompatActivity implements View, AudioListAdapter.o
             startActivityForResult(photoPickerIntent, 123);
         }
         if (menuItem.getItemId() == R.id.action_sharing) {
-           // startActivity(Utils.shareNote(Objects.requireNonNull(title.getText()).toString(), Objects.requireNonNull(description.getText()).toString(), date.getText().toString(), rst, getApplicationContext()));
+            // startActivity(Utils.shareNote(Objects.requireNonNull(title.getText()).toString(), Objects.requireNonNull(description.getText()).toString(), date.getText().toString(), rst, getApplicationContext()));
         }
         if (menuItem.getItemId() == R.id.action_delete) {
             presenter.deleteNote(/*keys,*/ id);
+            startActivity(new Intent(Notes.this, MainActivity.class).putExtra("key", key));
             finish();
         }
         if (menuItem.getItemId() == R.id.action_password) {
@@ -493,9 +545,10 @@ public class Notes extends AppCompatActivity implements View, AudioListAdapter.o
             }
         }
         if (menuItem.getItemId() == R.id.action_checkbox) {
-            adapterCheck.addItem(new Check("", -1), adapterCheck.getItemCount());
-            recyclerViewCheck.scrollToPosition(mAdapter.getItemCount() - 1);
+            adapterCheck.addItem(new Check("", -1, getDate(), getDate()), adapterCheck.getItemCount(), id);
+            recyclerViewCheck.scrollToPosition(adapterCheck.getItemCount() - 1);
             textView.setVisibility(VISIBLE);
+            checkList = adapterCheck.get();
         }
         if (menuItem.getItemId() == R.id.action_alarm) {
             openTimePickerDialog(true);
@@ -577,7 +630,7 @@ public class Notes extends AppCompatActivity implements View, AudioListAdapter.o
         }
         if (menuItem.getItemId() == R.id.action_audio_record) {
             startActivity(new Intent(Notes.this, RecordFragment.class));
-            finish();
+            //finish();
         }
         return super.onOptionsItemSelected(menuItem);
     }
@@ -670,17 +723,18 @@ public class Notes extends AppCompatActivity implements View, AudioListAdapter.o
         Dialog dialog = getDialogCategoryOrPassword();
         EditText editText = dialog.findViewById(R.id.password);
         if (key.equals("All Notes")) {
-            editText.setText(category);
+            editText.setText("All Notes");
+            // editText.setText(category);
         } else {
             editText.setText(key);
         }
         (dialog.findViewById(R.id.bt_close)).setOnClickListener(v -> {
             dialog.dismiss();
-            key = "All Notes";
+            key = category;
         });
         (dialog.findViewById(R.id.bt_save)).setOnClickListener(v -> {
             if (editText.getText().toString().length() == 0) {
-                key = "All Notes";
+                key = category;
             } else {
                 key = editText.getText().toString();
             }
@@ -695,11 +749,25 @@ public class Notes extends AppCompatActivity implements View, AudioListAdapter.o
         super.onActivityResult(requestCode, resultCode, data);
         if (data != null) {
             if (requestCode == 111) {
+                String time = getDate();
+                listImages.add(new Images(data.getByteArrayExtra("image"), time, time));
+                presenter.saveImages(listImages);
+                //action drawing
+                /*String time = getDate();
+                if (id == null) {
+                    presenter.saveNote(key, Objects.requireNonNull(title.getText()).toString(), Objects.requireNonNull(description.getText()).toString(), time, time, single_choice_selected, password, fixed, listImages);
+                    listImages.add(new Images(data.getByteArrayExtra("image"), time, time));
+                    presenter.saveImages(listImages, time);
+                } else {
+                    listImages.add(new Images(data.getByteArrayExtra("image"), time, time));
+                    presenter.saveImages(listImages, id);
+                }*/
                 /*Realm.getDefaultInstance().executeTransaction(realm -> {
                     rst.add(new Item(data.getByteArrayExtra("image")));
                     realm.insertOrUpdate(rst);
                 });*/
             } else {
+                // add images
                 pickedImage = data.getData();
             }
             if (requestCode == 999 && resultCode == RESULT_OK) {

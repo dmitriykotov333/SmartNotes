@@ -20,13 +20,17 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.kotov.smartnotes.R;
+import com.kotov.smartnotes.activity.editor.Presenter;
 import com.kotov.smartnotes.adapter.OnClickListener;
+import com.kotov.smartnotes.database.Action;
+import com.kotov.smartnotes.database.CheckAction;
 import com.kotov.smartnotes.model.Check;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 
 import androidx.core.view.MotionEventCompat;
 import androidx.recyclerview.widget.DiffUtil;
@@ -40,7 +44,7 @@ public class AdapterCheck extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
     public OnStartDragListener mDragStartListener = null;
     public OnItemClickListener mOnItemClickListener;
     private OnClickListener<Check> onClickListener;
-
+    private String date;
 
 
     public void setOnClickListener(OnClickListener<Check> onClickListener) {
@@ -58,10 +62,12 @@ public class AdapterCheck extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         this.mOnItemClickListener = onItemClickListener;
     }
 
-    public AdapterCheck(Context context, List<Check> items) {
+    public AdapterCheck(Context context, List<Check> items, String date) {
         this.items = items;
         this.ctx = context;
-
+        this.date = date;
+        checkAction = new CheckAction(ctx);
+        action = new Action(ctx);
     }
 
     public void setDragListener(OnStartDragListener onStartDragListener) {
@@ -107,7 +113,13 @@ public class AdapterCheck extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
             originalViewHolder.checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-
+                    int rs;
+                    if (isChecked) {
+                        rs = 1;
+                    } else {
+                        rs = -1;
+                    }
+                   checkAction.updateCheck(rs, items, i);
                     // сохраняем изменяемое значение в массив
                    /* Realm.getDefaultInstance().executeTransaction(realm -> {
                         items.get(i).setCheck(isChecked);
@@ -126,8 +138,8 @@ public class AdapterCheck extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
                         originalViewHolder.bt_move.setImageResource(R.drawable.ic_delete);
                         originalViewHolder.bt_move.setOnClickListener(view -> {
                             if (onClickListener != null) {
-                                onClickListener.onItemClick(view, social, i);
-                            }
+                              onClickListener.onItemClick(view, social, i);
+                             }
                         });
                     } else {
                         originalViewHolder.bt_move.setImageResource(R.drawable.ic_view_headline_black_24dp);
@@ -147,11 +159,12 @@ public class AdapterCheck extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
                         items.get(i).setCheck(originalViewHolder.checkBox.isChecked());
                         realm.insertOrUpdate(items);
                     });*/
+
                 }
 
                 @Override
                 public void afterTextChanged(Editable editable) {
-
+                    checkAction.updateCheckTitle(Objects.requireNonNull(originalViewHolder.name.getText()).toString(), items, i);
                 }
             });
             originalViewHolder.lyt_parent.setOnClickListener(new View.OnClickListener() {
@@ -161,26 +174,34 @@ public class AdapterCheck extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
                     }
                 }
             });
-
-            originalViewHolder.bt_move.setOnTouchListener((view, motionEvent) -> {
+            originalViewHolder.lyt_parent.setOnTouchListener((view, motionEvent) -> {
                 if (MotionEventCompat.getActionMasked(motionEvent) != 0 || mDragStartListener == null) {
                     return false;
                 }
                 mDragStartListener.onStartDrag(viewHolder);
                 return false;
             });
+           /* originalViewHolder.bt_move.setOnTouchListener((view, motionEvent) -> {
+                if (MotionEventCompat.getActionMasked(motionEvent) != 0 || mDragStartListener == null) {
+                    return false;
+                }
+                mDragStartListener.onStartDrag(viewHolder);
+                return false;
+            });*/
         }
     }
 
     public int getItemCount() {
         return this.items.size();
     }
+    public List<Check> get() {
+        return items;
+    }
     boolean rst = false;
-    public void addItem(Check dataObj, int index) {
-        /*Realm.getDefaultInstance().executeTransaction(realm -> {
-            items.add(dataObj);
-            realm.insertOrUpdate(items);
-        });*/
+    private CheckAction checkAction;
+    public void addItem(Check dataObj, int index, String date) {
+        items.add(dataObj);
+        checkAction.addCheck(items);
         notifyItemInserted(index);
         rst = true;
     }
@@ -189,16 +210,23 @@ public class AdapterCheck extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
             items.remove(index);
             realm.insertOrUpdate(items);
         });*/
+        checkAction.deleteCheckNotesId(items);
+        items.remove(index);
+        checkAction.addOneCheck(items, date, action);
+        // checkAction.deleteCheck(items.get(index).getUpdate_date());
         notifyItemRemoved(index);
         notifyItemRangeChanged(index, getItemCount());
     }
-    public boolean onItemMove(int i, int i2) {
-        /*Realm.getDefaultInstance().executeTransaction(realm -> {
-            Collections.swap(this.items, i, i2);
-            realm.insertOrUpdate(items);
-        });*/
-        notifyItemMoved(i, i2);
+    Action action;
+    @Override
+    public boolean onItemMove(int fromPosition, int toPosition) {
+
+      checkAction.deleteCheckNotesId(items);
+        Collections.swap(items, fromPosition, toPosition);
+        checkAction.addOneCheck(items, date, action);
+        notifyItemMoved(fromPosition, toPosition);
         return true;
     }
+
 
 }

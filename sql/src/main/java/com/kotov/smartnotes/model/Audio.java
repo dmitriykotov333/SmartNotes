@@ -4,11 +4,17 @@ public class Audio {
 
     private Integer id;
     private String directory;
+    private String create_date;
     private Integer notes_audio_id;
 
-    public Audio(Integer id, String directory, Integer notes_audio_id) {
-        this.id = id;
+    public Audio(String directory, String create_date) {
         this.directory = directory;
+        this.create_date = create_date;
+    }
+
+    public Audio(String directory, String create_date, Integer notes_audio_id) {
+        this.directory = directory;
+        this.create_date = create_date;
         this.notes_audio_id = notes_audio_id;
     }
 
@@ -34,5 +40,13 @@ public class Audio {
 
     public void setNotes_audio_id(Integer notes_audio_id) {
         this.notes_audio_id = notes_audio_id;
+    }
+
+    public String getCreate_date() {
+        return create_date;
+    }
+
+    public void setCreate_date(String create_date) {
+        this.create_date = create_date;
     }
 }

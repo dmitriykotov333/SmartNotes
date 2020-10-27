@@ -32,6 +32,8 @@ import com.kotov.smartnotes.adapter.OnClickListener;
 import com.kotov.smartnotes.model.Category;
 import com.kotov.smartnotes.model.Note;
 import com.kotov.smartnotes.utils.Utils;
+import com.kotov.smartnotes.utils.alarm.AlarmReceiver;
+import com.kotov.smartnotes.utils.alarm.AlarmUtils;
 
 import java.util.List;
 import java.util.Objects;
@@ -47,7 +49,7 @@ public class MainActivity extends AppCompatActivity {
     private AdapterList mAdapter, mAdapterFixed;
     private Action action;
 
-    private String category;
+    private String category = null;
     public RecyclerView recyclerView_fixed;
     private ImageButton bt_toggle_input;
     private LinearLayout bt_toggle_input_lin;
@@ -57,11 +59,20 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         action = new Action(getApplicationContext());
+        Intent intent = getIntent();
+        if (intent != null && intent.getStringExtra("key") != null) {
+            category = intent.getStringExtra("key");
+        } else {
+            category = "All Notes";
+        }
         initToolbar();
-        findViewById(R.id.fab).setOnClickListener(v ->
-                startActivity(new Intent(MainActivity.this, Notes.class).putExtra("key", category)));
+        findViewById(R.id.fab).setOnClickListener(v -> {
+            startActivity(new Intent(MainActivity.this, Notes.class).putExtra("key", category));
+            finish();
+        });
 
     }
+
 
     @Override
     protected void onResume() {
@@ -73,8 +84,7 @@ public class MainActivity extends AppCompatActivity {
     private void initToolbar() {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        category = action.getCategory().get(0).getName();
-        Objects.requireNonNull(getSupportActionBar()).setTitle(getString(R.string.app_name));
+        Objects.requireNonNull(getSupportActionBar()).setTitle(category);
         toolbar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -100,6 +110,7 @@ public class MainActivity extends AppCompatActivity {
                         for (Category m : action.getCategory()) {
                             if (m.getName().equals(item.getTitle().toString())) {
                                 category = m.getName();
+                                Objects.requireNonNull(getSupportActionBar()).setTitle(category);
                                 onResume();
                                 return true;
                             }
@@ -124,10 +135,11 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
         Note item = mAdapter.getItem(i);
-        if (!item.getPassword().isEmpty()) {
-            dialog(item);
-        } else {
+        if (item.getPassword().equals("null")) {
             startActivity(new Intent(MainActivity.this, Notes.class).putExtra("key", category).putExtra("id", item.getUpdate_date()));
+            finish();
+        } else {
+            dialog(item);
         }
     }
 
@@ -156,6 +168,7 @@ public class MainActivity extends AppCompatActivity {
         dialog.show();
         dialog.getWindow().setAttributes(layoutParams);
     }
+
     private void initComponent(String key) {
         /**
          * Init expansion panel
@@ -233,14 +246,15 @@ public class MainActivity extends AppCompatActivity {
                 for (int size = selectedItems.size() - 1; size >= 0; size--) {
                     mAdapter.removeData(selectedItems.get(size));
                 }
-                mAdapter.notifyDataSetChanged();
                 if (mAdapterFixed != null) {
                     List<Integer> selectedItemsF = mAdapterFixed.getSelectedItems();
                     for (int size = selectedItemsF.size() - 1; size >= 0; size--) {
                         mAdapterFixed.removeData(selectedItemsF.get(size));
                     }
+
                     mAdapterFixed.notifyDataSetChanged();
                 }
+                mAdapter.notifyDataSetChanged();
                 onResume();
             }
         };

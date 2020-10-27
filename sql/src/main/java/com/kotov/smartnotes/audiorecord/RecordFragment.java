@@ -19,6 +19,8 @@ import android.widget.TextView;
 
 import com.kotov.smartnotes.R;
 import com.kotov.smartnotes.activity.editor.Notes;
+import com.kotov.smartnotes.database.AudioAction;
+import com.kotov.smartnotes.model.Audio;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -42,6 +44,8 @@ public class RecordFragment extends AppCompatActivity implements View.OnClickLis
     private MediaRecorder mediaRecorder;
     private String recordFile;
     private Chronometer timer;
+    private String date;
+    private AudioAction audio;
 
     public RecordFragment() {
         // Required empty public constructor
@@ -52,12 +56,20 @@ public class RecordFragment extends AppCompatActivity implements View.OnClickLis
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.fragment_record);
+        audio = new AudioAction(getApplicationContext());
+        date = getDate();
         init();
+    }
+
+    private String getDate() {
+        @SuppressLint("SimpleDateFormat") SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        Date date = new Date();
+        return dateFormat.format(date);
     }
 
     @SuppressLint("ResourceType")
     private void init() {
-       // NavController navController = Navigation.findNavController(this, R.layout.fragment_record);
+        // NavController navController = Navigation.findNavController(this, R.layout.fragment_record);
         recordBtn = findViewById(R.id.record_btn);
         timer = findViewById(R.id.record_timer);
         filenameText = findViewById(R.id.record_filename);
@@ -87,23 +99,29 @@ public class RecordFragment extends AppCompatActivity implements View.OnClickLis
         mediaRecorder.stop();
         mediaRecorder.release();
         mediaRecorder = null;
-        startActivity(new Intent(RecordFragment.this, Notes.class));
-        finish();
+        onBackPressed();
+        //startActivity(new Intent(RecordFragment.this, Notes.class));
+        //finish();
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
     }
 
     private void startRecording() {
         timer.setBase(SystemClock.elapsedRealtime());
         timer.start();
-        String recordPath = Objects.requireNonNull(getExternalFilesDir("/")).getAbsolutePath();
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy_MM_dd_hh_mm_ss", Locale.CANADA);
-        Date now = new Date();
-        recordFile = "Recording_" + formatter.format(now) + ".mp4";
+        String recordPath = Objects.requireNonNull(getExternalFilesDir("/" + date)).getAbsolutePath();
+
+        recordFile = "Recording_" + date + ".mp4";
         filenameText.setText("Recording, File Name : " + recordFile);
         mediaRecorder = new MediaRecorder();
         mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
         mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
         mediaRecorder.setOutputFile(recordPath + "/" + recordFile);
         mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+        audio.addAudio(new Audio(recordPath, date));
         try {
             mediaRecorder.prepare();
         } catch (IOException e) {

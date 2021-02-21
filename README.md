@@ -9,27 +9,9 @@
 - ### Jetpack Navigation Component
 - ### RxJava
 - ### Dagger
+***
+## Functional
 
-
-    Part1: WHERE, AND, OR, LIKE(%, _), BETWEEN
- 
-    Part2: IN, NOT IN, NOT
-- Tutorial 5 - DELETE, UPDATE
-- Tutorial 6 - ALTER ADD, DROP, RENAME TO 
-- Tutorial 7 - CASE 
-- Tutorial 8 - ORDER BY, ORDER BY COLUMN_NAME DESC
-- Tutorial 9 - SUM, ORDER BY SUM, AVG GROUP BY
-- Tutorial 10 - MIN, MAX, COUNT, LIMIT, DISTINCT
-- Tutorial 11 - AS, CROSS JOIN, INNER JOIN
-- Tutorial 12 - SUBQUERY, EXISTS, NOT EXISTS
-- Tutorial 13 - LEFT OUTER JOIN, RIGHT OUTER JOIN
-- Tutorial 14 - UNION, UNION ALL, INTERSECT, EXCEPT
-- Tutorial 15 - CHECK, UNIQUE
-- Tutorial 16 - CREATE VIEW (ПРЕДСТОВЛЕНИЕ)
-- Tutorial 17 - CREATE PROCEDURE, CREATE FUNCTION
-- Tutorila 18 - TRIGGER (https://codetown.ru/sql/triggery/)
-- Tutorial 19 - CURSOR (https://postgrespro.ru/docs/postgrespro/9.6/plpgsql-cursors)
-- Tutorial 20 - TRANSACTION
 
 #### Атомарность:
   - ПРАВИЛО 1. Столбец, содержаищй атомарные данные, не может состоять из нескольких однотипных элементов.

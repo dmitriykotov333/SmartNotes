@@ -14,9 +14,20 @@
 
 ## Functional
 
-
-#### Атомарность:
-  - ПРАВИЛО 1. Столбец, содержаищй атомарные данные, не может состоять из нескольких однотипных элементов.
+  - Add Image
+  - Export note
+  - Share note
+  - Create drawing
+  - Add prioity
+  - Fixed note
+  - Add password
+  - Add Category
+  - Add Checkbox
+  - Add alarm
+  - Fixed notification
+  - Voice input
+  - Voice reading text
+  - Audio recorder
 
 | food_name	| ingredients | 
 | ------------- | ------------- |

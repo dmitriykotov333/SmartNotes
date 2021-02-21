@@ -11,7 +11,7 @@
 - ### Dagger
 
 
-<img src="https://github.com/dmitriykotov333/PostgreSQL/blob/main/images/many-to-many.PNG" width="80%" height="50%">
+<img src="https://github.com/dmitriykotov333/PostgreSQL/blob/main/images/photo_2021-02-21_15-42-35.jpg" width="80%" height="50%">
 
 ## Functional
 

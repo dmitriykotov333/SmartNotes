@@ -1,11 +1,16 @@
 # RoomNotes
 - ### Room
 
-#### один-ко-многим
-> Запись одной таблицы может быть связана со многими записями другой таблицы но каждая запись последней может быть связана только с одной записью в первой.
-- Tutorial 2 - create, drop, insert
-- Tutorial 3 - NOT NULL, default
-- Tutorial 4 - SELECT
+#### one-to-many
+> A record in one table can be linked to many records in another table, but each record in the latter can be linked to only one record in the first.
+#### many-to-many
+> The two tables are linked through a junction table so that many records in the first table can be linked to many records in the second, and vice versa.
+
+- ### Jetpack Navigation Component
+- ### RxJava
+- 
+- ### Dagger
+
 
     Part1: WHERE, AND, OR, LIKE(%, _), BETWEEN
  

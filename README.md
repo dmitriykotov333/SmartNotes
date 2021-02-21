@@ -8,7 +8,6 @@
 
 - ### Jetpack Navigation Component
 - ### RxJava
-- 
 - ### Dagger
 
 

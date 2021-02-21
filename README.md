@@ -17,7 +17,7 @@
 
   - Add Image
    - Preview image
-   - Redactor image
+   - Edit image
    - Zooming image
   - Export note
   - Share note

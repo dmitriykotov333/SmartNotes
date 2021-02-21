@@ -1,4 +1,4 @@
-# RoomNotes(Realm, SQL)
+# RoomNotes(Room)
 - ### Room
 
 #### one-to-many
@@ -16,6 +16,9 @@
 ## Functional
 
   - Add Image
+   - Preview image
+   - Edit image
+   - Zooming image
   - Export note
   - Share note
   - Create drawing

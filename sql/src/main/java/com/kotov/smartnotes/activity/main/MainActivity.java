@@ -40,7 +40,7 @@ import java.util.Objects;
 
 /**
  * @author dmitriykotov333@gmail.com
- * @since 06.08.2020
+ * @since 06.08.2018
  */
 public class MainActivity extends AppCompatActivity {
 

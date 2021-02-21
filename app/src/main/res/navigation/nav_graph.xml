@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/nav_notes">
+
+    <fragment
+        android:id="@+id/nav_notes"
+        android:name="com.kotdev.smartnotes.ui.fragments.FirstFragment"
+        android:label="Smart Notes"
+        tools:layout="@layout/fragment_first">
+
+        <action
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim"
+            android:id="@+id/action_FirstFragment_to_SecondFragment"
+            app:destination="@id/create_notes" />
+    </fragment>
+    <fragment
+        android:id="@+id/create_notes"
+        android:name="com.kotdev.smartnotes.ui.fragments.SecondFragment"
+        android:label="@string/second_fragment_label"
+        tools:layout="@layout/fragment_second">
+
+        <action
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim"
+            android:id="@+id/action_SecondFragment_to_FirstFragment"
+            app:destination="@id/nav_notes"
+            app:launchSingleTop="true"
+            app:popUpTo="@+id/create_notes"
+            app:popUpToInclusive="true"/>
+        <action
+            android:id="@+id/action_create_notes_to_detailFragmentImage"
+            app:destination="@id/detailFragmentImage" />
+        <argument
+            android:name="selevted_note"
+            app:argType="com.kotdev.smartnotes.room.note.Note" />
+        <action
+            android:id="@+id/action_create_notes_to_drawingFragment"
+            app:destination="@id/drawingFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/detailFragmentImage"
+        android:name="com.kotdev.smartnotes.ui.fragments.DetailFragmentImage"
+        android:label="fragment_detail_image"
+        tools:layout="@layout/fragment_detail_image" >
+        <action
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim"
+            android:id="@+id/action_detailFragmentImage_to_create_notes"
+            app:destination="@id/create_notes"
+            app:launchSingleTop="true"
+            app:popUpTo="@+id/detailFragmentImage"
+            app:popUpToInclusive="true"/>
+    </fragment>
+    <fragment
+        android:id="@+id/drawingFragment"
+        android:name="com.kotdev.smartnotes.ui.fragments.DrawingFragment"
+        android:label="fragment_drawing"
+        tools:layout="@layout/fragment_drawing" >
+        <action
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim"
+            app:launchSingleTop="true"
+            app:popUpTo="@+id/create_notes"
+            app:popUpToInclusive="true"
+            android:id="@+id/action_drawingFragment_to_create_notes"
+            app:destination="@id/create_notes" />
+    </fragment>
+</navigation>

@@ -1,0 +1,86 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.kotdev.smartnotes.ui.activity.MainActivity">
+    <item
+        android:id="@+id/action_save"
+        android:orderInCategory="1"
+        android:title="Save"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_delete"
+        android:orderInCategory="2"
+        android:title="Delete note"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_priority"
+        android:orderInCategory="6"
+        android:title="важность"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_fix_note"
+        android:orderInCategory="7"
+        android:title="fix note"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_category"
+        android:orderInCategory="8"
+        android:title="Category"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_checkbox"
+        android:orderInCategory="9"
+        android:title="Add checkbox"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_alarm"
+        android:orderInCategory="10"
+        android:title="Add alarm"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_notifaction"
+        android:orderInCategory="11"
+        android:title="Fixed Notifaction"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_drawing"
+        android:orderInCategory="12"
+        android:title="Create drawing"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_read_aloud"
+        android:orderInCategory="13"
+        android:title="голосовой ввод"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_read"
+        android:orderInCategory="14"
+        android:title="голосовой текст"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_audio_record"
+        android:orderInCategory="14"
+        android:title="Аудиозапись"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_password"
+        android:orderInCategory="7"
+        android:title="password"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_photo"
+        android:orderInCategory="3"
+        android:title="добавить фото"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_to_txt"
+        android:orderInCategory="4"
+        android:title="экспорт"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_sharing"
+        android:orderInCategory="5"
+        android:title="Share to"
+        app:showAsAction="ifRoom" />
+</menu>

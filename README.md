@@ -11,7 +11,7 @@
 - ### Dagger
 
 
-<img src="https://github.com/dmitriykotov333/SmartNotes/blob/room/photo_2021-02-21_15-42-35.jpg" width="40%" height="50%">
+<img src="https://github.com/dmitriykotov333/SmartNotes/blob/room/photo_2021-02-21_15-42-35.jpg" width="40%" height="40%">
 
 ## Functional
 

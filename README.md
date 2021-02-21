@@ -16,6 +16,9 @@
 ## Functional
 
   - Add Image
+  - - Preview image
+  - - Redactor image
+  - - Zooming image
   - Export note
   - Share note
   - Create drawing
